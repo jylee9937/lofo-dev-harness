@@ -1,0 +1,14 @@
+# Local agent/session state (contains local paths)
+.omc/
+.omx/
+.gstack/
+.claude/settings.local.json
+
+# OS / editor
+.DS_Store
+*.swp
+
+# Env / secrets
+.env
+.env.*
+!.env.example
