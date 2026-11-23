@@ -28,7 +28,7 @@ TEMPLATES = PLUGIN_ROOT / "templates"
 CONFIG_REL = ".harness/config.json"
 START = "<!-- lofo-dev-harness:start -->"
 END = "<!-- lofo-dev-harness:end -->"
-GITIGNORE_LINES = [".harness/config.local.json", ".harness/local/"]
+GITIGNORE_LINES = [".harness/config.local.json", ".harness/local/", "*.wireflow.html"]
 
 LANGS = ("ko", "en")
 MODES = ("collab", "autonomous")
@@ -74,6 +74,12 @@ LABELS = {
             "other": "확정한 화면 설계",
             "none": "화면 설계 메모 또는 와이어프레임",
         },
+        "design_mirror": {
+            "figma": "Figma에 같은 화면, 화살표, 검토 표시를 그린다. 파일에 처음 쓰기 전에 사용자 확인을 받는다.",
+            "pencil": "Pencil(.pen)에 같은 화면, 화살표, 검토 표시를 그린다. .pen 파일은 Pencil MCP로만 연다.",
+            "other": "디자인 도구에서 화면 이미지를 내보내 보드에서 와이어프레임과 함께 본다.",
+            "none": "디자인 도구 없이 HTML 보드에서 검토한다.",
+        },
         "notes_where": {
             "none": "`docs/`의 결정 기록",
             "default": "{name} (경로는 `.harness/config.local.json`의 `notesPath`, git에 올리지 않음)",
@@ -109,6 +115,12 @@ LABELS = {
             "pencil": "Screens approved in the Pencil design file",
             "other": "Approved screen design",
             "none": "Screen notes or wireframes",
+        },
+        "design_mirror": {
+            "figma": "Draw the same screens, arrows and review marks in Figma. Confirm with the user before the first write to a file.",
+            "pencil": "Draw the same screens, arrows and review marks in Pencil (.pen). Open .pen files only through the Pencil MCP.",
+            "other": "Export screen images from the design tool and review them on the board next to the wireframes.",
+            "none": "No design tool: review on the HTML board.",
         },
         "notes_where": {
             "none": "decision records in `docs/`",
@@ -305,6 +317,8 @@ def build_context(cfg: dict) -> tuple[str, dict, dict]:
         "handoff_path": docs.get("handoff", ".harness/handoff.md"),
         "handoff_max_kb": str(docs.get("handoffMaxKb", 40)),
         "design_source": labels["design_source"].get(design, labels["design_source"]["other"]),
+        "design_mirror": labels["design_mirror"].get(design, labels["design_mirror"]["other"]),
+        "flows_dir": docs.get("flows", "design/flows"),
         "notes_where": notes_where,
         "integrations_list": "\n".join(lines) if lines else labels["integration"]["empty"],
     }

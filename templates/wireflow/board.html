@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="__WIREFLOW_LANG__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="lofo-dev-harness flow.py">
+<title>__WIREFLOW_TITLE__ · wireflow</title>
+<style>
+:root {
+  --bg: #f4f2ed; --dot: #dcd8cf; --panel: #ffffff; --ink: #1f1e1c; --muted: #6d6a63; --line: #d8d3c8;
+  --card: #ffffff; --stage: rgba(255,255,255,.55); --stage-line: #cfc9bc;
+  --wire: #efece6; --wire-strong: #d9d4ca; --wire-ink: #8c877c;
+  --accent: #2f62d6; --accent-soft: #e3ebfb; --arrow: #a8a296; --arrow-on: #2f62d6;
+  --s1: #c62828; --s2: #e2640c; --s3: #a87f00; --s4: #6b7280;
+  --rationale: #0f766e; --decision: #a15c07; --request: #b5175f; --inferred: #6d3fd6; --check: #c62828;
+  --ok: #2e7d32; --shadow: 0 1px 2px rgba(0,0,0,.06), 0 6px 18px rgba(0,0,0,.07);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161615; --dot: #2a2a28; --panel: #1f1f1d; --ink: #ecebe7; --muted: #a3a09a; --line: #3a3936;
+    --card: #232321; --stage: rgba(255,255,255,.03); --stage-line: #3d3c38;
+    --wire: #2c2c2a; --wire-strong: #3b3a37; --wire-ink: #9a968d;
+    --accent: #7aa2ff; --accent-soft: #24304d; --arrow: #6b675f; --arrow-on: #7aa2ff;
+    --s1: #ff6b6b; --s2: #ff9b4a; --s3: #e0b84a; --s4: #9ca3af;
+    --rationale: #3cc2b1; --decision: #f0a64a; --request: #ff6fa8; --inferred: #a98bff; --check: #ff6b6b;
+    --ok: #6bd17a; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161615; --dot: #2a2a28; --panel: #1f1f1d; --ink: #ecebe7; --muted: #a3a09a; --line: #3a3936;
+  --card: #232321; --stage: rgba(255,255,255,.03); --stage-line: #3d3c38;
+  --wire: #2c2c2a; --wire-strong: #3b3a37; --wire-ink: #9a968d;
+  --accent: #7aa2ff; --accent-soft: #24304d; --arrow: #6b675f; --arrow-on: #7aa2ff;
+  --s1: #ff6b6b; --s2: #ff9b4a; --s3: #e0b84a; --s4: #9ca3af;
+  --rationale: #3cc2b1; --decision: #f0a64a; --request: #ff6fa8; --inferred: #a98bff; --check: #ff6b6b;
+  --ok: #6bd17a; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 18px rgba(0,0,0,.35);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); overflow: hidden;
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
+}
+button, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+.topbar {
+  position: fixed; inset: 0 0 auto 0; z-index: 20; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.topbar h1 { font-size: 15px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40vw; }
+.topbar .goal { color: var(--muted); font-size: 13px; flex: 1 1 220px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.btn, .select {
+  height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card);
+  display: inline-flex; align-items: center; gap: 6px; font-size: 13px;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn .count { font-variant-numeric: tabular-nums; opacity: .8; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { height: 28px; border: 0; background: var(--card); padding: 0 10px; font-size: 13px; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.status { font-size: 12px; padding: 3px 8px; border-radius: 999px; font-weight: 600; }
+.status.bad { background: color-mix(in srgb, var(--s1) 14%, transparent); color: var(--s1); }
+.status.good { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
+#viewport {
+  position: fixed; inset: 0; overflow: hidden; cursor: grab; touch-action: none;
+  background-image: radial-gradient(var(--dot) 1px, transparent 1px); background-size: 22px 22px;
+}
+#viewport.dragging { cursor: grabbing; }
+#canvas { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+#arrows, #badges { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+#badges { z-index: 2; }
+#stages { position: relative; display: flex; flex-direction: column; gap: 70px; padding: 40px; }
+.stage {
+  position: relative; border: 1.5px dashed var(--stage-line); border-radius: 28px; background: var(--stage);
+  padding: 46px 32px 28px; width: max-content;
+}
+.stage > h2 {
+  position: absolute; top: 12px; left: 22px; margin: 0; font-size: 13px; font-weight: 700; color: var(--muted);
+  letter-spacing: .02em;
+}
+.stage > h2 .sn { color: var(--ink); margin-right: 6px; }
+.row { display: flex; gap: 130px; align-items: flex-start; }
+.screen { position: relative; width: var(--fw); outline: none; }
+.screen:focus-visible .frame { box-shadow: 0 0 0 3px var(--accent); }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; min-height: 22px; margin-bottom: 6px; }
+.tag {
+  border: 1px solid currentColor; background: var(--card); border-radius: 6px; padding: 1px 6px; font-size: 11px;
+  font-weight: 600; line-height: 17px; white-space: nowrap;
+}
+.tag.rationale { color: var(--rationale); }
+.tag.decision { color: var(--decision); }
+.tag.request { color: var(--request); }
+.tag.inferred { color: var(--inferred); border-style: dashed; }
+.tag.check { color: var(--check); }
+.tag.S1 { color: var(--s1); } .tag.S2 { color: var(--s2); } .tag.S3 { color: var(--s3); } .tag.S4 { color: var(--s4); }
+.frame {
+  position: relative; width: var(--fw); height: var(--fh); border-radius: 22px; background: var(--card);
+  border: 2px solid var(--ink); box-shadow: var(--shadow); overflow: hidden; cursor: pointer;
+  transition: opacity .15s, transform .15s;
+}
+.device-desktop .frame, .device-tablet .frame { border-radius: 12px; }
+.frame.inferred { border-style: dashed; border-color: var(--inferred); }
+.frame.state-error { border-color: var(--s1); }
+.frame.state-success { border-color: var(--ok); }
+.frame.state-empty, .frame.state-loading { border-color: var(--muted); }
+.frame img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.wire { padding: 12px 10px; display: flex; flex-direction: column; gap: 7px; font-size: 10px; color: var(--wire-ink); height: 100%; }
+.wire .b { border-radius: 6px; }
+.wire .b[data-action] { outline: 1.5px solid var(--accent); outline-offset: 1px; }
+.b-header { display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--ink); padding-bottom: 6px; border-bottom: 1px solid var(--wire-strong); }
+.b-header::after { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--wire-strong); }
+.b-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+.b-text { line-height: 1.4; }
+.b-text.empty::before, .b-text.empty::after { content: ""; display: block; height: 6px; margin: 3px 0; border-radius: 3px; background: var(--wire-strong); }
+.b-text.empty::after { width: 70%; }
+.b-search, .b-input { border: 1.5px solid var(--wire-strong); padding: 6px 8px; background: var(--card); }
+.b-search::before { content: "⌕ "; }
+.b-input .lbl { display: block; font-size: 9px; margin-bottom: 3px; }
+.b-input .box { display: block; height: 14px; }
+.b-button { background: var(--ink); color: var(--card); text-align: center; padding: 7px; font-weight: 700; }
+.b-list { display: flex; flex-direction: column; gap: 5px; }
+.b-list .it, .b-card { border: 1.5px solid var(--wire-strong); padding: 6px; display: flex; gap: 6px; align-items: center; background: var(--card); border-radius: 6px; }
+.b-list .it::before { content: ""; flex: 0 0 22px; height: 22px; border-radius: 4px; background: var(--wire); }
+.b-image { background: var(--wire); min-height: 64px; display: grid; place-items: center; text-align: center; padding: 6px;
+  background-image: linear-gradient(to top right, transparent calc(50% - .5px), var(--wire-strong), transparent calc(50% + .5px)),
+                    linear-gradient(to top left, transparent calc(50% - .5px), var(--wire-strong), transparent calc(50% + .5px)); }
+.b-tabs { margin-top: auto; display: flex; justify-content: space-around; border-top: 1px solid var(--wire-strong); padding-top: 7px; }
+.b-notice { background: var(--wire); padding: 7px; }
+.b-toggle { display: flex; justify-content: space-between; align-items: center; }
+.b-toggle::after { content: ""; width: 22px; height: 12px; border-radius: 6px; background: var(--wire-strong); }
+.b-divider { height: 1px; background: var(--wire-strong); }
+.caption { display: flex; align-items: baseline; gap: 6px; margin-top: 8px; font-size: 13px; }
+.caption .num { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+.caption .title { font-weight: 700; }
+.caption .st { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; }
+.acts { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.act {
+  width: 100%; text-align: left; border: 1px solid var(--line); background: var(--card); border-radius: 7px; padding: 4px 8px;
+  font-size: 12px; display: flex; justify-content: space-between; gap: 8px;
+}
+.act .to { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.act.missing .to, .act.broken .to { color: var(--s1); font-weight: 700; }
+.act.on { border-color: var(--arrow-on); color: var(--arrow-on); font-weight: 600; }
+.end-mark { margin-top: 6px; font-size: 11px; color: var(--ok); font-weight: 700; }
+.dim .screen:not(.in-path) .frame { opacity: .35; }
+.dim .screen:not(.in-path) .acts, .dim .screen:not(.in-path) .tags { opacity: .4; }
+.edge { fill: none; stroke: var(--arrow); stroke-width: 1.6; opacity: .75; }
+.edge.on { stroke: var(--arrow-on); stroke-width: 2.6; opacity: 1; }
+.edge.hl { stroke: var(--accent); opacity: 1; stroke-width: 2.2; }
+.edge.bad { stroke: var(--s1); stroke-dasharray: 5 4; opacity: .9; }
+.dim .edge:not(.on) { opacity: .15; }
+.badge circle { fill: var(--arrow-on); }
+.badge text { fill: #fff; font-size: 11px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+.bad-dot circle { fill: var(--s1); }
+.bad-dot text { fill: #fff; font-size: 11px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+#panel {
+  position: fixed; z-index: 30; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); background: var(--panel);
+  border-left: 1px solid var(--line); box-shadow: -8px 0 24px rgba(0,0,0,.08); overflow-y: auto; padding: 0 0 24px;
+}
+#panel[hidden] { display: none; }
+.ph { position: sticky; top: 0; background: var(--panel); padding: 14px 18px 10px; border-bottom: 1px solid var(--line); display: flex; gap: 10px; align-items: flex-start; }
+.ph h3 { margin: 0; font-size: 16px; flex: 1; }
+.ph .sub { display: block; font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+.ph .x { border: 0; background: transparent; font-size: 20px; line-height: 1; padding: 2px 6px; }
+.sec { padding: 12px 18px 4px; }
+.sec h4 { margin: 0 0 6px; font-size: 12px; letter-spacing: .03em; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+.sec h4 .dotc { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.sec p, .sec li { margin: 0 0 6px; font-size: 13px; }
+.sec ul { margin: 0; padding-left: 18px; }
+.item { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; font-size: 13px; }
+.item .meta { font-size: 11px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 3px; }
+.item .meta b { color: var(--ink); }
+.item .sev { font-weight: 800; }
+.item .sev.S1 { color: var(--s1); } .item .sev.S2 { color: var(--s2); } .item .sev.S3 { color: var(--s3); } .item .sev.S4 { color: var(--s4); }
+.item.local { border-style: dashed; border-color: var(--request); }
+.item button.del { float: right; border: 0; background: transparent; color: var(--muted); font-size: 12px; }
+.muted { color: var(--muted); }
+.form { display: flex; flex-direction: column; gap: 6px; }
+.form textarea { min-height: 72px; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: var(--card); }
+.form select { height: 30px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); padding: 0 6px; }
+.find { cursor: pointer; }
+.find:hover { border-color: var(--accent); }
+#toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 40; background: var(--ink); color: var(--bg);
+  padding: 8px 14px; border-radius: 10px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: calc(100vw - 32px);
+}
+#toast.show { opacity: 1; }
+#legend {
+  position: fixed; left: 16px; bottom: 16px; z-index: 15; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+  padding: 10px 12px; font-size: 12px; box-shadow: var(--shadow); max-width: calc(100vw - 32px);
+}
+#legend[hidden] { display: none; }
+#legend .grid { display: grid; grid-template-columns: auto 1fr; gap: 5px 8px; align-items: center; }
+#copybox { width: 100%; min-height: 160px; margin-top: 8px; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+@media (max-width: 640px) {
+  .topbar h1 { max-width: 60vw; }
+  .topbar .goal { display: none; }
+  #panel { top: auto; height: 70vh; width: 100vw; border-left: 0; border-top: 1px solid var(--line); border-radius: 16px 16px 0 0; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1 id="title"></h1>
+  <span class="goal" id="goal"></span>
+  <div class="controls">
+    <select class="select" id="scenario" aria-label="scenario"></select>
+    <span class="seg" id="viewseg" hidden><button type="button" data-view="wire" aria-pressed="true"></button><button type="button" data-view="design" aria-pressed="false"></button></span>
+    <button class="btn" type="button" id="findingsBtn"></button>
+    <button class="btn primary" type="button" id="copyBtn"></button>
+    <span class="seg"><button type="button" id="zoomOut" aria-label="zoom out">−</button><button type="button" id="fitBtn"></button><button type="button" id="zoomIn" aria-label="zoom in">+</button></span>
+    <button class="btn" type="button" id="legendBtn" aria-expanded="false">?</button>
+    <span class="status" id="status"></span>
+  </div>
+</header>
+<main id="viewport"><div id="canvas"><svg id="arrows" aria-hidden="true"></svg><div id="stages"></div><svg id="badges" aria-hidden="true"></svg></div></main>
+<aside id="panel" hidden aria-live="polite"></aside>
+<div id="legend" hidden></div>
+<div id="toast" role="status"></div>
+<script type="application/json" id="wireflow-data">__WIREFLOW_DATA__</script>
+<script>
+(function () {
+  "use strict";
+  var DATA = JSON.parse(document.getElementById("wireflow-data").textContent);
+  var flow = DATA.flow, numbers = DATA.numbers, images = DATA.images || {}, findings = DATA.findings || [];
+  var I18N = {
+    ko: {
+      pathNone: "경로 강조 안 함", kinds: { main: "주요", recovery: "복구", edge: "예외" },
+      wire: "와이어프레임", design: "시안", findings: "검사", copy: "수정 요청 복사", fit: "전체 보기",
+      rationale: "기획 근거", conditions: "UX 조건", actions: "동작", decisions: "결정 대기", issues: "UX 이슈",
+      requests: "수정 요청", checks: "검사 결과", addRequest: "요청 추가", requestPlaceholder: "이 화면에서 바꾸고 싶은 점을 적으세요",
+      actionNone: "특정 동작 아님", inferred: "AI 추정", none: "기록 없음", missing: "목적지 없음", broken: "없는 화면",
+      end: "여기서 끝날 수 있음", copied: "수정 요청을 복사했습니다. 채팅에 붙여 넣으세요.",
+      copyFail: "자동 복사가 막혔습니다. 아래 내용을 직접 복사하세요.", nothingToCopy: "아직 적은 수정 요청이 없습니다. 화면을 눌러 요청을 추가하세요.",
+      confirmClear: "이 보드에 적은 수정 요청을 모두 지울까요?", cleared: "보드에 적은 수정 요청을 비웠습니다.", clear: "보드 요청 비우기",
+      noFindings: "구조 문제 없음", close: "닫기", local: "아직 전달 안 함", del: "삭제", legend: "범례",
+      header: "[wireflow 수정 요청]", footer: "위 요청을 /lofo-dev-harness:wireflow 로 flow JSON에 반영하고 보드를 다시 만들어 주세요.",
+      screenWord: "화면", actionWord: "동작", allFindings: "구조 검사 결과", flowLevel: "흐름 전체",
+      states: { "default": "", empty: "빈 상태", loading: "로딩", error: "오류", success: "완료", modal: "팝업" },
+      actKinds: { primary: "", secondary: "보조", back: "뒤로", close: "닫기", tab: "탭", system: "자동" },
+      status: { open: "열림", accepted: "수용", fixed: "해결", wontfix: "안 함", decided: "결정됨", deferred: "보류", done: "반영됨", rejected: "반려" },
+      blocking: "S1/S2 남음", passing: "S1/S2 없음", suggestion: "제안", answer: "결정", options: "선택지",
+      legendRows: [["rationale", "기획 근거가 있는 화면"], ["decision", "아직 정할 질문"], ["S2", "UX 이슈 (S1 막힘 · S2 큰 불편 · S3 헷갈림 · S4 다듬기)"], ["request", "수정 요청"], ["inferred", "AI가 추정해 넣은 화면 (점선)"], ["check", "구조 검사에서 걸림"]]
+    },
+    en: {
+      pathNone: "No path highlight", kinds: { main: "Main", recovery: "Recovery", edge: "Edge" },
+      wire: "Wireframe", design: "Design", findings: "Checks", copy: "Copy change requests", fit: "Fit",
+      rationale: "Rationale", conditions: "UX conditions", actions: "Actions", decisions: "Open decisions", issues: "UX issues",
+      requests: "Change requests", checks: "Check results", addRequest: "Add request", requestPlaceholder: "What should change on this screen?",
+      actionNone: "Not about one action", inferred: "AI inferred", none: "Nothing recorded", missing: "No destination", broken: "Unknown screen",
+      end: "Task can end here", copied: "Change requests copied. Paste them into the chat.",
+      copyFail: "Automatic copy was blocked. Copy the text below.", nothingToCopy: "No change requests yet. Open a screen to add one.",
+      confirmClear: "Remove all change requests written on this board?", cleared: "Board change requests cleared.", clear: "Clear board requests",
+      noFindings: "No structural problems", close: "Close", local: "Not sent yet", del: "Delete", legend: "Legend",
+      header: "[wireflow change requests]", footer: "Apply these requests to the flow JSON with /lofo-dev-harness:wireflow and rebuild the board.",
+      screenWord: "Screen", actionWord: "action", allFindings: "Structural check results", flowLevel: "Whole flow",
+      states: { "default": "", empty: "Empty", loading: "Loading", error: "Error", success: "Success", modal: "Modal" },
+      actKinds: { primary: "", secondary: "Secondary", back: "Back", close: "Close", tab: "Tab", system: "Auto" },
+      status: { open: "Open", accepted: "Accepted", fixed: "Fixed", wontfix: "Won't fix", decided: "Decided", deferred: "Deferred", done: "Applied", rejected: "Rejected" },
+      blocking: "S1/S2 open", passing: "No S1/S2", suggestion: "Suggestion", answer: "Answer", options: "Options",
+      legendRows: [["rationale", "Screen has planning rationale"], ["decision", "Question still open"], ["S2", "UX issue (S1 blocks · S2 major · S3 confusing · S4 polish)"], ["request", "Change request"], ["inferred", "Screen inferred by AI (dashed)"], ["check", "Flagged by structural checks"]]
+    }
+  };
+  var T = I18N[flow.language === "en" ? "en" : "ko"];
+  var FRAMES = { mobile: [176, 360], tablet: [250, 330], desktop: [320, 210] };
+  var device = FRAMES[flow.device] ? flow.device : "mobile";
+  var SEV = ["S1", "S2", "S3", "S4"];
+  var screens = {}; flow.screens.forEach(function (s) { screens[s.id] = s; });
+  var storeKey = "lofo-wireflow:" + flow.id + ":requests";
+  var state = { view: "wire", scenario: "", selected: null, scale: 1, tx: 0, ty: 0 };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var viewport = $("viewport"), canvas = $("canvas"), stagesEl = $("stages"), svg = $("arrows"), badges = $("badges"), panel = $("panel");
+
+  function h(tag, attrs) {
+    var node = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v === null || v === undefined || v === false) return;
+      if (k === "text") node.textContent = v;
+      else if (k === "class") node.className = v;
+      else if (k.slice(0, 2) === "on") node.addEventListener(k.slice(2), v);
+      else node.setAttribute(k, v === true ? "" : v);
+    });
+    for (var i = 2; i < arguments.length; i++) {
+      var c = arguments[i];
+      if (c === null || c === undefined || c === false) continue;
+      if (Array.isArray(c)) c.forEach(function (x) { if (x) node.appendChild(typeof x === "string" ? document.createTextNode(x) : x); });
+      else node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    }
+    return node;
+  }
+  function svgEl(tag, attrs) {
+    var node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    Object.keys(attrs || {}).forEach(function (k) { node.setAttribute(k, attrs[k]); });
+    return node;
+  }
+  function toast(msg) {
+    var t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(toast.timer); toast.timer = setTimeout(function () { t.classList.remove("show"); }, 2600);
+  }
+
+  // ---------------------------------------------------------------- local requests
+  function loadLocal() { try { return JSON.parse(localStorage.getItem(storeKey) || "[]"); } catch (e) { return []; } }
+  function saveLocal(list) { try { localStorage.setItem(storeKey, JSON.stringify(list)); } catch (e) { /* storage blocked: keep in memory */ } }
+  var localRequests = loadLocal();
+
+  // ---------------------------------------------------------------- per-screen marks
+  function openItems(list, key, id, statuses) {
+    return (list || []).filter(function (x) { return x[key] === id && statuses.indexOf(x.status) >= 0; });
+  }
+  function marks(id) {
+    var issues = openItems(flow.issues, "screen", id, ["open", "accepted"]);
+    return {
+      decisions: openItems(flow.decisions, "screen", id, ["open"]),
+      issues: issues,
+      worst: SEV.filter(function (s) { return issues.some(function (i) { return i.severity === s; }); })[0],
+      requests: openItems(flow.requests, "screen", id, ["open"]),
+      local: localRequests.filter(function (r) { return r.screen === id; }),
+      checks: findings.filter(function (f) { return f.screen === id; })
+    };
+  }
+
+  // ---------------------------------------------------------------- rendering
+  function blockNode(b) {
+    var label = b.label || "";
+    var node;
+    switch (b.type) {
+      case "header": node = h("div", { class: "b b-header" }, label); break;
+      case "title": node = h("div", { class: "b b-title" }, label); break;
+      case "text": node = h("div", { class: "b b-text" + (label ? "" : " empty") }, label); break;
+      case "search": node = h("div", { class: "b b-search" }, label); break;
+      case "input": node = h("div", { class: "b b-input" }, h("span", { class: "lbl", text: label }), h("span", { class: "box" })); break;
+      case "button": node = h("div", { class: "b b-button" }, label); break;
+      case "list": node = h("div", { class: "b b-list" }, (b.items && b.items.length ? b.items : [label || "", "", ""]).map(function (x) { return h("div", { class: "it" }, x); })); break;
+      case "card": node = h("div", { class: "b b-card" }, label); break;
+      case "image": node = h("div", { class: "b b-image" }, label); break;
+      case "tabs": node = h("div", { class: "b b-tabs" }, (b.items || [label]).map(function (x) { return h("span", null, x); })); break;
+      case "notice": node = h("div", { class: "b b-notice" }, label); break;
+      case "toggle": node = h("div", { class: "b b-toggle" }, label); break;
+      default: node = h("div", { class: "b b-divider" });
+    }
+    if (b.action) node.setAttribute("data-action", b.action);
+    return node;
+  }
+
+  function tagList(s, m) {
+    var tags = [];
+    if (s.origin === "inferred") tags.push(h("span", { class: "tag inferred", text: T.inferred }));
+    if (s.rationale) tags.push(h("span", { class: "tag rationale", text: T.rationale }));
+    if (m.decisions.length) tags.push(h("span", { class: "tag decision", text: T.decisions + " " + m.decisions.length }));
+    if (m.worst) tags.push(h("span", { class: "tag " + m.worst, text: "UX " + m.worst + (m.issues.length > 1 ? " +" + (m.issues.length - 1) : "") }));
+    var req = m.requests.length + m.local.length;
+    if (req) tags.push(h("span", { class: "tag request", text: T.requests + " " + req }));
+    if (m.checks.length) tags.push(h("span", { class: "tag check", text: T.findings + " " + m.checks.length }));
+    return tags;
+  }
+
+  function targetText(a) {
+    if (a.to === null) return "? " + T.missing;
+    if (!screens[a.to]) return "! " + T.broken;
+    return "→ " + numbers[a.to];
+  }
+
+  function render() {
+    stagesEl.innerHTML = "";
+    stagesEl.className = "device-" + device;
+    flow.stages.forEach(function (stage, si) {
+      var row = h("div", { class: "row" });
+      flow.screens.filter(function (s) { return s.stage === stage.id; }).forEach(function (s) {
+        var m = marks(s.id);
+        var st = s.state || "default";
+        var frame = h("div", {
+          class: "frame state-" + st + (s.origin === "inferred" ? " inferred" : ""),
+          role: "button", "aria-label": numbers[s.id] + " " + s.title
+        });
+        if (state.view === "design" && images[s.id]) frame.appendChild(h("img", { src: images[s.id], alt: s.title, onload: drawArrows }));
+        else frame.appendChild(h("div", { class: "wire" }, (s.wireframe || []).map(blockNode)));
+        var card = h("article", { class: "screen", "data-id": s.id, tabindex: "0" },
+          h("div", { class: "tags" }, tagList(s, m)),
+          frame,
+          h("div", { class: "caption" },
+            h("span", { class: "num", text: numbers[s.id] }),
+            h("span", { class: "title", text: s.title }),
+            T.states[st] ? h("span", { class: "st", text: T.states[st] }) : null),
+          s.actions.length ? h("ul", { class: "acts" }, s.actions.map(function (a) {
+            var cls = "act" + (a.to === null ? " missing" : !screens[a.to] ? " broken" : "");
+            var kind = T.actKinds[a.kind || "primary"];
+            return h("li", null, h("button", { class: cls, type: "button", "data-action": a.id, title: a.label },
+              h("span", { class: "label", text: (kind ? "[" + kind + "] " : "") + a.label }),
+              h("span", { class: "to", text: targetText(a) })));
+          })) : null,
+          s.end ? h("div", { class: "end-mark", text: "■ " + T.end }) : null);
+        card.style.setProperty("--fw", FRAMES[device][0] + "px");
+        card.style.setProperty("--fh", FRAMES[device][1] + "px");
+        card.addEventListener("click", function (e) {
+          var act = e.target.closest("[data-action]");
+          if (act && act.classList.contains("act")) {
+            var a = s.actions.filter(function (x) { return x.id === act.getAttribute("data-action"); })[0];
+            if (a && screens[a.to]) { openScreen(a.to); focusScreen(a.to); return; }
+          }
+          openScreen(s.id); focusScreen(s.id);
+        });
+        card.addEventListener("keydown", function (e) { if (e.key === "Enter") { openScreen(s.id); focusScreen(s.id); } });
+        card.addEventListener("mouseenter", function () { hover(s.id, true); });
+        card.addEventListener("mouseleave", function () { hover(s.id, false); });
+        row.appendChild(card);
+      });
+      stagesEl.appendChild(h("section", { class: "stage" },
+        h("h2", null, h("span", { class: "sn", text: String(si + 1).padStart(2, "0") }), stage.title), row));
+    });
+    applyScenario();
+  }
+
+  // ---------------------------------------------------------------- arrows
+  function box(node) {
+    var x = 0, y = 0, n = node;
+    while (n && n !== canvas) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent; }
+    return { x: x, y: y, w: node.offsetWidth, h: node.offsetHeight };
+  }
+  function scenarioSteps() {
+    var sc = (flow.scenarios || []).filter(function (x) { return x.id === state.scenario; })[0];
+    return sc ? sc.steps : [];
+  }
+  function drawArrows() {
+    [svg, badges].forEach(function (layer) {
+      while (layer.firstChild) layer.removeChild(layer.firstChild);
+      layer.setAttribute("width", stagesEl.offsetWidth);
+      layer.setAttribute("height", stagesEl.offsetHeight);
+    });
+    var defs = svgEl("defs");
+    [["arrow", "var(--arrow)"], ["arrow-on", "var(--arrow-on)"], ["arrow-bad", "var(--s1)"]].forEach(function (m) {
+      var mk = svgEl("marker", { id: m[0], viewBox: "0 0 10 10", refX: "9", refY: "5", markerWidth: "7", markerHeight: "7", orient: "auto-start-reverse" });
+      var p = svgEl("path", { d: "M0,0 L10,5 L0,10 z" }); p.style.fill = m[1]; mk.appendChild(p); defs.appendChild(mk);
+    });
+    svg.appendChild(defs);
+    var steps = scenarioSteps(), order = {};
+    steps.forEach(function (st, i) { var k = st.screen + ":" + st.action; (order[k] = order[k] || []).push(i + 1); });
+    var labels = [];
+    flow.screens.forEach(function (s) {
+      var card = stagesEl.querySelector('.screen[data-id="' + s.id + '"]');
+      if (!card) return;
+      s.actions.forEach(function (a) {
+        var anchor = card.querySelector('.wire [data-action="' + a.id + '"]') || card.querySelector('.act[data-action="' + a.id + '"]');
+        var ab = box(anchor), x1 = ab.x + ab.w, y1 = ab.y + ab.h / 2;
+        var key = s.id + ":" + a.id, on = !!order[key];
+        if (!screens[a.to]) {
+          var x2b = x1 + 46;
+          var bad = svgEl("path", { d: "M" + x1 + "," + y1 + " L" + x2b + "," + y1, class: "edge bad", "data-from": s.id });
+          svg.appendChild(bad);
+          var g = svgEl("g", { class: "bad-dot" });
+          g.appendChild(svgEl("circle", { cx: x2b + 9, cy: y1, r: 9 }));
+          var tx = svgEl("text", { x: x2b + 9, y: y1 }); tx.textContent = a.to === null ? "?" : "!"; g.appendChild(tx);
+          badges.appendChild(g);
+          return;
+        }
+        var target = stagesEl.querySelector('.screen[data-id="' + a.to + '"] .frame');
+        var tb = box(target);
+        var d, mid;
+        if (a.to === s.id) {
+          var r = 26;
+          d = "M" + x1 + "," + y1 + " C" + (x1 + r * 2) + "," + (y1 - r * 2) + " " + (x1 + r * 2) + "," + (y1 + r * 2) + " " + (x1 + 2) + "," + (y1 + 6);
+          mid = { x: x1 + r * 1.5, y: y1 };
+        } else {
+          // Same row, target to the right: enter the left side. Lower row: enter the top.
+          // Upper row or same row to the left: come back around and enter the right side.
+          var srcRow = card.closest(".stage"), dstRow = target.closest(".stage");
+          var sameRow = srcRow === dstRow, below = !sameRow && box(dstRow).y > box(srcRow).y;
+          var x2, y2, c1x, c1y, c2x, c2y, dx;
+          var targetLeft = tb.x + tb.w < ab.x;
+          if (below) {
+            if (tb.x + tb.w / 2 < ab.x) x1 = ab.x;
+            x2 = tb.x + tb.w / 2; y2 = tb.y - 2;
+            c1x = x1 + (x1 === ab.x ? -60 : 60); c1y = y1; c2x = x2; c2y = y2 - Math.max(60, (y2 - y1) / 2);
+          } else if (targetLeft) {
+            // Leave from the anchor's left edge so the arrow never crosses its own screen.
+            x1 = ab.x; x2 = tb.x + tb.w + 2; y2 = tb.y + Math.min(tb.h / 2, 120);
+            dx = Math.max(40, (x1 - x2) / 2);
+            c1x = x1 - dx; c1y = y1; c2x = x2 + dx; c2y = y2;
+          } else {
+            x2 = tb.x - 2; y2 = tb.y + Math.min(tb.h / 2, 120);
+            dx = Math.max(40, Math.abs(x2 - x1) / 2);
+            c1x = x1 + dx; c1y = y1; c2x = x2 - dx; c2y = y2;
+          }
+          d = "M" + x1 + "," + y1 + " C" + c1x + "," + c1y + " " + c2x + "," + c2y + " " + x2 + "," + y2;
+          mid = { x: (x1 + 3 * c1x + 3 * c2x + x2) / 8, y: (y1 + 3 * c1y + 3 * c2y + y2) / 8 };
+        }
+        var path = svgEl("path", { d: d, class: "edge" + (on ? " on" : ""), "data-from": s.id, "data-to": a.to });
+        path.setAttribute("marker-end", on ? "url(#arrow-on)" : "url(#arrow)");
+        svg.appendChild(path);
+        if (on) labels.push({ x: mid.x, y: mid.y, text: order[key].join(",") });
+      });
+    });
+    labels.forEach(function (l) {
+      var g = svgEl("g", { class: "badge" });
+      g.appendChild(svgEl("circle", { cx: l.x, cy: l.y, r: l.text.length > 2 ? 13 : 10 }));
+      var t = svgEl("text", { x: l.x, y: l.y }); t.textContent = l.text; g.appendChild(t);
+      badges.appendChild(g);
+    });
+  }
+  function hover(id, on) {
+    svg.querySelectorAll('[data-from="' + id + '"], [data-to="' + id + '"]').forEach(function (p) { p.classList.toggle("hl", on); });
+  }
+  function applyScenario() {
+    var steps = scenarioSteps(), visited = {};
+    steps.forEach(function (st) { visited[st.screen] = true; var s = screens[st.screen]; var a = s && s.actions.filter(function (x) { return x.id === st.action; })[0]; if (a && screens[a.to]) visited[a.to] = true; });
+    stagesEl.classList.toggle("dim", steps.length > 0);
+    stagesEl.querySelectorAll(".screen").forEach(function (c) { c.classList.toggle("in-path", !!visited[c.getAttribute("data-id")]); });
+    stagesEl.querySelectorAll(".act").forEach(function (b) {
+      var sid = b.closest(".screen").getAttribute("data-id");
+      b.classList.toggle("on", steps.some(function (st) { return st.screen === sid && st.action === b.getAttribute("data-action"); }));
+    });
+    drawArrows();
+  }
+
+  // ---------------------------------------------------------------- pan & zoom
+  function applyTransform() { canvas.style.transform = "translate(" + state.tx + "px," + state.ty + "px) scale(" + state.scale + ")"; }
+  function topOffset() { return document.querySelector(".topbar").offsetHeight; }
+  function fit() {
+    var vw = viewport.clientWidth, vh = viewport.clientHeight - topOffset();
+    var cw = stagesEl.offsetWidth, ch = stagesEl.offsetHeight;
+    state.scale = Math.max(0.15, Math.min(vw / cw, vh / ch, 1) * 0.96);
+    state.tx = Math.max(8, (vw - cw * state.scale) / 2);
+    state.ty = topOffset() + Math.max(8, (vh - ch * state.scale) / 2);
+    applyTransform();
+  }
+  function zoomAt(cx, cy, factor) {
+    var s = Math.min(2.5, Math.max(0.15, state.scale * factor));
+    state.tx = cx - (cx - state.tx) * (s / state.scale);
+    state.ty = cy - (cy - state.ty) * (s / state.scale);
+    state.scale = s; applyTransform();
+  }
+  function focusScreen(id) {
+    var card = stagesEl.querySelector('.screen[data-id="' + id + '"]');
+    if (!card) return;
+    // Center the card in the area the panel leaves visible: beside it on wide screens,
+    // above the bottom sheet on phones.
+    var b = box(card), sheet = !panel.hidden && window.innerWidth <= 640;
+    var right = !panel.hidden && !sheet ? panel.offsetWidth || 420 : 0;
+    var top = topOffset(), bottom = sheet ? panel.getBoundingClientRect().top : viewport.clientHeight;
+    var vw = viewport.clientWidth - right, vh = Math.max(80, bottom - top);
+    state.scale = Math.min(Math.max(state.scale, 0.8), (vh * 0.92) / b.h, (vw * 0.92) / b.w, 1.2);
+    state.tx = vw / 2 - (b.x + b.w / 2) * state.scale;
+    state.ty = top + vh / 2 - (b.y + b.h / 2) * state.scale;
+    applyTransform();
+  }
+  viewport.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    if (e.ctrlKey || e.metaKey) zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.01));
+    else { state.tx -= e.deltaX; state.ty -= e.deltaY; applyTransform(); }
+  }, { passive: false });
+  var drag = null;
+  viewport.addEventListener("pointerdown", function (e) {
+    if (e.target.closest(".screen")) return;
+    drag = { x: e.clientX, y: e.clientY, tx: state.tx, ty: state.ty };
+    viewport.classList.add("dragging"); viewport.setPointerCapture(e.pointerId);
+  });
+  viewport.addEventListener("pointermove", function (e) {
+    if (!drag) return;
+    state.tx = drag.tx + e.clientX - drag.x; state.ty = drag.ty + e.clientY - drag.y; applyTransform();
+  });
+  function endDrag() { drag = null; viewport.classList.remove("dragging"); }
+  viewport.addEventListener("pointerup", endDrag);
+  viewport.addEventListener("pointercancel", endDrag);
+
+  // ---------------------------------------------------------------- panel
+  function section(title, color, body) {
+    return h("div", { class: "sec" }, h("h4", null, color ? h("span", { class: "dotc", style: "background:var(--" + color + ")" }) : null, title), body);
+  }
+  function closePanel() { panel.hidden = true; state.selected = null; }
+  function showPanel() {
+    panel.style.top = window.innerWidth > 640 ? topOffset() + "px" : "";
+    panel.hidden = false;
+  }
+  function openScreen(id) {
+    var s = screens[id]; if (!s) return;
+    state.selected = id;
+    var m = marks(id), st = s.state || "default";
+    panel.innerHTML = "";
+    panel.appendChild(h("div", { class: "ph" },
+      h("h3", null, numbers[id] + " " + s.title,
+        h("span", { class: "sub", text: [id, T.states[st], s.origin === "inferred" ? T.inferred : ""].filter(Boolean).join(" · ") })),
+      h("button", { class: "x", type: "button", "aria-label": T.close, onclick: closePanel, text: "×" })));
+    panel.appendChild(section(T.rationale, "rationale", s.rationale ? h("p", { text: s.rationale }) : h("p", { class: "muted", text: T.none })));
+    if (s.conditions && s.conditions.length) panel.appendChild(section(T.conditions, null, h("ul", null, s.conditions.map(function (c) { return h("li", { text: c }); }))));
+    panel.appendChild(section(T.actions, null, s.actions.length ? h("ul", null, s.actions.map(function (a) {
+      var to = screens[a.to] ? numbers[a.to] + " " + screens[a.to].title : (a.to === null ? T.missing : T.broken + " " + a.to);
+      return h("li", null, h("b", { text: a.label }), " → " + to);
+    })) : h("p", { class: "muted", text: s.end ? T.end : T.none })));
+    if (m.checks.length) panel.appendChild(section(T.checks, "check", m.checks.map(function (f) {
+      return h("div", { class: "item" }, h("div", { class: "meta" }, h("span", { class: "sev " + f.severity, text: f.severity }), h("span", { text: f.code })), f.message);
+    })));
+    if ((flow.decisions || []).some(function (d) { return d.screen === id; })) panel.appendChild(section(T.decisions, "decision", flow.decisions.filter(function (d) { return d.screen === id; }).map(function (d) {
+      return h("div", { class: "item" },
+        h("div", { class: "meta" }, h("b", { text: T.status[d.status] || d.status })),
+        d.question,
+        d.options && d.options.length ? h("div", { class: "muted", text: T.options + ": " + d.options.join(" / ") }) : null,
+        d.answer ? h("div", null, h("b", { text: T.answer + ": " }), d.answer) : null);
+    })));
+    var issues = (flow.issues || []).filter(function (i) { return i.screen === id; });
+    if (issues.length) panel.appendChild(section(T.issues, (m.worst || "S4").toLowerCase(), issues.map(function (i) {
+      return h("div", { class: "item" },
+        h("div", { class: "meta" }, h("span", { class: "sev " + i.severity, text: i.severity }), h("span", { text: i.category }),
+          h("span", { text: T.status[i.status] || i.status }), h("span", { text: i.origin })),
+        h("b", { text: i.title }),
+        i.detail ? h("div", { text: i.detail }) : null,
+        i.suggestion ? h("div", { class: "muted", text: T.suggestion + ": " + i.suggestion }) : null);
+    })));
+    var reqBody = [];
+    (flow.requests || []).filter(function (r) { return r.screen === id; }).forEach(function (r) {
+      reqBody.push(h("div", { class: "item" }, h("div", { class: "meta" }, h("b", { text: T.status[r.status] || r.status }), r.action ? h("span", { text: T.actionWord + " " + r.action }) : null), r.text,
+        r.resolution ? h("div", { class: "muted", text: r.resolution }) : null));
+    });
+    m.local.forEach(function (r) {
+      reqBody.push(h("div", { class: "item local" },
+        h("button", { class: "del", type: "button", text: T.del, onclick: function () {
+          localRequests = localRequests.filter(function (x) { return x.id !== r.id; }); saveLocal(localRequests); refresh(id);
+        } }),
+        h("div", { class: "meta" }, h("b", { text: T.local }), r.action ? h("span", { text: T.actionWord + " " + r.action }) : null), r.text));
+    });
+    var select = h("select", { "aria-label": T.actionWord }, h("option", { value: "", text: T.actionNone }),
+      s.actions.map(function (a) { return h("option", { value: a.id, text: a.label }); }));
+    var area = h("textarea", { placeholder: T.requestPlaceholder, "aria-label": T.requests });
+    reqBody.push(h("div", { class: "form" }, select, area, h("button", { class: "btn primary", type: "button", text: T.addRequest, onclick: function () {
+      var text = area.value.trim(); if (!text) { area.focus(); return; }
+      localRequests.push({ id: "local-" + Date.now(), screen: id, action: select.value || null, text: text });
+      saveLocal(localRequests); refresh(id);
+    } })));
+    panel.appendChild(section(T.requests, "request", reqBody));
+    showPanel();
+  }
+  function refresh(id) { render(); updateTop(); if (id) openScreen(id); }
+
+  function openFindings() {
+    panel.innerHTML = "";
+    panel.appendChild(h("div", { class: "ph" }, h("h3", { text: T.allFindings }), h("button", { class: "x", type: "button", "aria-label": T.close, onclick: closePanel, text: "×" })));
+    if (!findings.length) panel.appendChild(h("div", { class: "sec" }, h("p", { class: "muted", text: T.noFindings })));
+    findings.forEach(function (f) {
+      var where = f.screen ? numbers[f.screen] + " " + screens[f.screen].title : T.flowLevel;
+      panel.appendChild(h("div", { class: "sec" }, h("div", {
+        class: "item find", role: "button", tabindex: "0",
+        onclick: function () { if (f.screen) { openScreen(f.screen); focusScreen(f.screen); } }
+      }, h("div", { class: "meta" }, h("span", { class: "sev " + f.severity, text: f.severity }), h("span", { text: f.code }), h("b", { text: where })), f.message)));
+    });
+    showPanel();
+  }
+
+  // ---------------------------------------------------------------- copy
+  function requestText() {
+    var lines = [T.header + " " + flow.title + " (" + flow.id + ")", "flow: " + DATA.meta.flowPath, ""];
+    localRequests.forEach(function (r, i) {
+      var s = screens[r.screen];
+      var a = s && r.action ? s.actions.filter(function (x) { return x.id === r.action; })[0] : null;
+      lines.push((i + 1) + ". " + T.screenWord + " " + (numbers[r.screen] || "?") + " `" + r.screen + "`" + (s ? " " + s.title : "") +
+        (a ? " · " + T.actionWord + " `" + a.id + "` (" + a.label + ")" : ""));
+      lines.push("   " + r.text.replace(/\n/g, "\n   "));
+    });
+    lines.push("", T.footer);
+    return lines.join("\n");
+  }
+  function copyRequests() {
+    if (!localRequests.length) { toast(T.nothingToCopy); return; }
+    var text = requestText();
+    function fallback() {
+      panel.innerHTML = "";
+      var box2 = h("textarea", { id: "copybox", readonly: true }); box2.value = text;
+      panel.appendChild(h("div", { class: "ph" }, h("h3", { text: T.copy }), h("button", { class: "x", type: "button", onclick: closePanel, text: "×" })));
+      panel.appendChild(h("div", { class: "sec" }, h("p", { text: T.copyFail }), box2));
+      showPanel(); box2.focus(); box2.select();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast(T.copied); }, fallback);
+    else fallback();
+  }
+
+  // ---------------------------------------------------------------- top bar
+  function updateTop() {
+    var openIssues = (flow.issues || []).filter(function (i) { return i.status === "open" || i.status === "accepted"; });
+    var blocking = findings.some(function (f) { return f.severity === "S1" || f.severity === "S2"; }) ||
+      openIssues.some(function (i) { return i.severity === "S1" || i.severity === "S2"; });
+    var status = $("status"); status.textContent = blocking ? T.blocking : T.passing; status.className = "status " + (blocking ? "bad" : "good");
+    $("findingsBtn").innerHTML = ""; $("findingsBtn").append(T.findings + " ", h("span", { class: "count", text: String(findings.length) }));
+    $("copyBtn").innerHTML = ""; $("copyBtn").append(T.copy + " ", h("span", { class: "count", text: String(localRequests.length) }));
+  }
+  function setupTop() {
+    $("title").textContent = flow.title;
+    $("goal").textContent = flow.goal;
+    document.title = flow.title + " · wireflow";
+    var sel = $("scenario");
+    sel.appendChild(h("option", { value: "", text: T.pathNone }));
+    (flow.scenarios || []).forEach(function (sc) { sel.appendChild(h("option", { value: sc.id, text: "[" + T.kinds[sc.kind || "main"] + "] " + sc.title })); });
+    if (!(flow.scenarios || []).length) sel.hidden = true;
+    sel.addEventListener("change", function () { state.scenario = sel.value; applyScenario(); });
+    if (Object.keys(images).length) {
+      var seg = $("viewseg"); seg.hidden = false;
+      seg.querySelector('[data-view="wire"]').textContent = T.wire;
+      seg.querySelector('[data-view="design"]').textContent = T.design;
+      seg.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-view]"); if (!b) return;
+        state.view = b.getAttribute("data-view");
+        seg.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+        render();
+      });
+    }
+    $("findingsBtn").addEventListener("click", openFindings);
+    $("copyBtn").addEventListener("click", copyRequests);
+    $("copyBtn").addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+      if (localRequests.length && window.confirm(T.confirmClear)) { localRequests = []; saveLocal(localRequests); refresh(state.selected); toast(T.cleared); }
+    });
+    $("copyBtn").title = T.clear + " (right-click)";
+    $("fitBtn").textContent = T.fit;
+    $("fitBtn").addEventListener("click", fit);
+    $("zoomIn").addEventListener("click", function () { zoomAt(viewport.clientWidth / 2, viewport.clientHeight / 2, 1.2); });
+    $("zoomOut").addEventListener("click", function () { zoomAt(viewport.clientWidth / 2, viewport.clientHeight / 2, 1 / 1.2); });
+    var legend = $("legend");
+    legend.appendChild(h("div", { class: "grid" }, T.legendRows.map(function (r) {
+      return [h("span", { class: "tag " + r[0], text: r[0] === "S2" ? "UX S2" : r[0] === "check" ? T.findings : r[0] === "inferred" ? T.inferred : r[0] === "request" ? T.requests : r[0] === "decision" ? T.decisions : T.rationale }), h("span", { text: r[1] })];
+    }).reduce(function (a, b) { return a.concat(b); }, [])));
+    $("legendBtn").setAttribute("aria-label", T.legend);
+    $("legendBtn").addEventListener("click", function () { legend.hidden = !legend.hidden; $("legendBtn").setAttribute("aria-expanded", String(!legend.hidden)); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closePanel(); legend.hidden = true; } });
+    updateTop();
+  }
+
+  setupTop();
+  render();
+  fit();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { drawArrows(); });
+  window.addEventListener("resize", function () { drawArrows(); });
+})();
+</script>
+</body>
+</html>

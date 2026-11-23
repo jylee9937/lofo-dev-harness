@@ -53,7 +53,7 @@ Pre-development artifacts go through **write → review → approve** before the
 | # | Stage | Artifact | Review |
 |---|---|---|---|
 | 1 | Planning and requirements | Requirements with acceptance criteria | Product and scope review |
-| 2 | Screen design | {{design_source}} | Screen review |
+| 2 | Screen design | Wireflow (`{{flows_dir}}/<flow>.flow.json`) and {{design_source}} | UX review (`/lofo-dev-harness:wireflow`), screen review |
 | 3 | Technical design (when needed) | `docs/<feature>-tech-design.md` | Architecture review |
 | 4 | Data consistency check | Schema and access rules checked against the real database | Migration diff, access rules tested for real |
 | 5 | Development | Code on a work branch | — |
@@ -61,6 +61,14 @@ Pre-development artifacts go through **write → review → approve** before the
 | 7 | Release | PR merge and deploy | §3, §5 |
 
 How to review: {{#gstack}}gstack skills (plans `/plan-ceo-review`, screens `/plan-design-review`, tech `/plan-eng-review`).{{/gstack}}{{^gstack}}give Claude subagents analyst, architect and critic roles{{#codex}}, and get a second opinion from Codex{{/codex}}.{{/gstack}}
+
+### Screen design and UX review
+
+- Design screens with `/lofo-dev-harness:wireflow`. The flow file that turns requirements into screens, arrows and scenarios (`{{flows_dir}}/<flow>.flow.json`) is the source of truth for screen design.
+- Each screen carries review marks: rationale, UX conditions, open decisions, UX issues (S1–S4) and change requests. Screens the requirements do not ask for are marked "AI inferred".
+- `flow.py check` catches broken links, unreachable screens, dead ends and missing recovery paths. On the HTML board, highlight paths, collect change requests per screen and hand them to the AI.
+- Design tool: {{design_mirror}}
+- Passes when checks have no S1/S2, no S1/S2 UX issue is open, every decision is decided or deferred by agreement, and the user has reviewed the board.
 
 ### Required sections of a technical design doc
 

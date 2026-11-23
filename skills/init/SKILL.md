@@ -68,7 +68,7 @@ Ask in this order:
 These are not asked. Mention them in the summary so the user can change them:
 - QA port 3100
 - viewports 390, 768, 1440
-- docs paths and `handoffMaxKb` 40
+- docs paths, including the wireflow folder `docs.flows` (`design/flows`), and `handoffMaxKb` 40
 - `codexRouting`: copy it from `${CLAUDE_PLUGIN_ROOT}/examples/nextjs-supabase-vercel.config.json` for Next.js. Otherwise leave it out, and the hook uses its built-in defaults.
 
 ## 4. Write the config

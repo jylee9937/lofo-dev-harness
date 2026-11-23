@@ -102,6 +102,11 @@ C. 웹사이트          (따로 발전한 자율 운영형: "AI가 만들고 �
 4. **언어**: README·스킬 본문은 영어, `README.ko.md`는 별도. init에서 프로젝트 문서 언어(ko/en)를 고르면 그 언어로 템플릿을 만듭니다.
 5. **플러그인 이름**: 저장소·마켓플레이스·플러그인 모두 `lofo-dev-harness`. 스킬은 `/lofo-dev-harness:init`처럼 부릅니다.
 6. **라이선스**: MIT.
+7. **화면 설계·UX 검토** (2026-11-24): 디자인 도구(Pencil, Figma, 기타)로 시안을 그리는 것과 함께, 와이어프레임 위에 UX 검토 표시를 보여 주는 기능을 하네스에 넣는다.
+   - 참고한 wireflow-review는 라이선스가 없어서 코드는 쓰지 않는다. 도구와 무관한 **자체 흐름 모델**(`design/flows/<id>.flow.json`)을 정본으로 두고, 검사 스크립트, HTML 보드, 디자인 도구 표시 규칙을 직접 만든다.
+8. **보드 수준**: 첫 버전은 **검토 보드**다.
+   - 단계별 화면, 번호 붙은 경로 강조, 화면별 검토 표시, 수정 요청 복사가 들어간다.
+   - 버튼을 눌러 걸어 보는 클릭 프로토타입(입력값 유지, 실패 후 재시도 재현)은 다음 버전으로 미룬다.
 
 ## 7. 저장소 구조안
 
@@ -116,6 +121,8 @@ lofo-dev-harness/
 │  ├─ init/                    ✅ 질문을 하나씩 받아 설정을 쓰고 프로젝트 파일 생성
 │  ├─ start-task/              ✅ 기본 브랜치 최신화 → 브랜치 생성 → 하네스 로드
 │  ├─ codex-delegate/          ✅ Codex 위임 규칙, 지시문 틀, 결과 회수 요령
+│  ├─ wireflow/                ✅ 흐름 작성 → 검사 → UX 검토 → 보드 → 디자인 도구 표시 → 수정 요청 반영
+│  │  └─ references/           ✅ UX 체크리스트, 디자인 도구별(Figma, Pencil, 기타) 표시 규칙
 │  ├─ security-gate/           # ★ 관문: 인증·돈·비밀값·권한은 Codex 검토, GO/NO-GO
 │  ├─ tech-design/             # 기술설계 문서 6개 섹션, 백엔드 설명 규칙
 │  ├─ qa/                      # L0~L3 QA 단계, findings 형식, 시각 리뷰 루브릭
@@ -127,6 +134,7 @@ lofo-dev-harness/
 ├─ agents/                     # QA 판단 에이전트 (시각, 흐름, 반박 검증)
 ├─ scripts/
 │  ├─ render.py                ✅ 설정 → AGENTS.md 블록, CLAUDE.md, 하네스 문서, .gitignore
+│  ├─ flow.py                  ✅ 흐름 검증·구조 검사(check) → HTML 검토 보드(build)
 │  └─ …                        # Codex 러너·재시도·연쇄 실행, DB 잠금, worktree 생성
 ├─ templates/{ko,en}/          ✅ 두 언어가 같은 파일 구성
 │  ├─ AGENTS.block.md, dev-harness.md
@@ -134,9 +142,10 @@ lofo-dev-harness/
 │  ├─ framework/{nextjs,_generic}.md
 │  ├─ db/{supabase,none,_generic}.md
 │  └─ hosting/{vercel,_generic}.md
-├─ schemas/                    ✅ .harness/config.json 스키마
-├─ examples/                   ✅ 설정 예시
-├─ tests/                      ✅ 렌더러·훅 테스트 (unittest)
+├─ templates/wireflow/board.html ✅ 검토 보드 템플릿 (외부 의존성 없음, 라이트·다크, 휴대폰 폭)
+├─ schemas/                    ✅ .harness/config.json 스키마, 흐름(flow.schema.json) 스키마
+├─ examples/                   ✅ 설정 예시, 예시 흐름(flows/study-group.flow.json)
+├─ tests/                      ✅ 렌더러·훅·흐름 테스트 (unittest)
 ├─ docs/                       # 하네스 자체 설명 (개념, 모드, 프리셋 만드는 법)
 ├─ README.md / README.ko.md    ✅
 └─ LICENSE                     ✅
@@ -184,6 +193,7 @@ init이 프로젝트에 설정 파일 하나를 만들고, 훅·스크립트·�
 1. **뼈대** ✅: 플러그인 정보, 마켓플레이스, README 두 개, LICENSE, config 형식
 2. **core + 협업 모드 + Next/Supabase/Vercel 프리셋** ✅ (v0.2): 세 프로젝트의 공통 부분을 옮기고 개인 정보를 걸러 냄. 프리셋이 없는 스택은 일반 규칙.
 3. **훅과 스킬**: 라우팅 훅, init, start-task, codex-delegate ✅ (v0.2) / security-gate, tech-design, handoff는 다음
+3-1. **화면 설계·UX 검토** ✅ (v0.3): wireflow 스킬, flow.py, 검토 보드, 디자인 도구 표시 규칙. 클릭 프로토타입은 다음
 4. **QA 모듈**
 5. **자율 모드**: night-shift, Codex 러너 스크립트, worktree 슬롯과 DB 잠금
 6. **추가 프리셋**: Firebase, GCP, AWS

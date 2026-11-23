@@ -1,0 +1,281 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jylee9937/lofo-dev-harness/main/schemas/flow.schema.json",
+  "version": 1,
+  "id": "study-group",
+  "title": "스터디 모임 신청",
+  "goal": "동네 스터디 모임을 찾아 참여 신청을 보낸다.",
+  "language": "ko",
+  "device": "mobile",
+  "source": "docs/study-group-requirements.md",
+  "design": { "tool": "none" },
+  "stages": [
+    { "id": "browse", "title": "모임 찾기" },
+    { "id": "detail", "title": "모임 살펴보기" },
+    { "id": "apply", "title": "신청" },
+    { "id": "result", "title": "결과" }
+  ],
+  "start": "group-list",
+  "screens": [
+    {
+      "id": "group-list",
+      "title": "모임 목록",
+      "stage": "browse",
+      "origin": "source",
+      "rationale": "요구사항 2.1: 가까운 모임을 지역과 주제로 찾을 수 있어야 한다.",
+      "conditions": ["로그인하지 않아도 목록을 볼 수 있다.", "검색어는 모임 이름과 지역에 모두 적용된다."],
+      "wireframe": [
+        { "type": "header", "label": "스터디 찾기" },
+        { "type": "search", "label": "모임 이름 또는 지역" },
+        { "type": "list", "items": ["영어 회화 · 성수 · 주 1회", "데이터 분석 · 강남 · 주 2회", "독서 토론 · 망원 · 격주"], "action": "open-group" },
+        { "type": "tabs", "items": ["찾기", "내 신청", "프로필"] }
+      ],
+      "actions": [
+        { "id": "open-group", "label": "모임 카드 누르기", "to": "group-detail" },
+        { "id": "search-none", "label": "결과 없는 검색", "to": "group-list-empty", "kind": "system" },
+        { "id": "tab-mine", "label": "내 신청 탭", "to": "my-applications", "kind": "tab" }
+      ]
+    },
+    {
+      "id": "group-list-empty",
+      "title": "검색 결과 없음",
+      "stage": "browse",
+      "state": "empty",
+      "origin": "inferred",
+      "conditions": ["검색어와 필터는 그대로 남겨 둔다."],
+      "wireframe": [
+        { "type": "header", "label": "스터디 찾기" },
+        { "type": "search", "label": "파이썬 · 제주" },
+        { "type": "notice", "label": "조건에 맞는 모임이 없어요." },
+        { "type": "button", "label": "검색 조건 지우기", "action": "reset" }
+      ],
+      "actions": [
+        { "id": "reset", "label": "검색 조건 지우기", "to": "group-list" }
+      ]
+    },
+    {
+      "id": "group-detail",
+      "title": "모임 상세",
+      "stage": "detail",
+      "origin": "source",
+      "rationale": "요구사항 2.2: 신청 전에 일정, 장소, 정원, 남은 자리를 확인한다.",
+      "wireframe": [
+        { "type": "header", "label": "모임 상세" },
+        { "type": "image", "label": "모임 장소 지도" },
+        { "type": "title", "label": "영어 회화 스터디" },
+        { "type": "text", "label": "매주 토요일 10:00 · 성수 · 정원 6명 (남은 자리 2)" },
+        { "type": "button", "label": "참여 신청", "action": "apply" }
+      ],
+      "actions": [
+        { "id": "apply", "label": "참여 신청 누르기", "to": "apply-form" },
+        { "id": "back", "label": "뒤로", "to": "group-list", "kind": "back" }
+      ]
+    },
+    {
+      "id": "apply-form",
+      "title": "신청서",
+      "stage": "apply",
+      "origin": "source",
+      "rationale": "요구사항 3.1: 이름, 연락처, 한 줄 소개를 받는다. 연락처는 모임장에게만 보인다.",
+      "conditions": ["연락처는 숫자와 하이픈만 허용한다.", "뒤로 갔다 와도 입력값이 남는다."],
+      "wireframe": [
+        { "type": "header", "label": "참여 신청" },
+        { "type": "input", "label": "이름" },
+        { "type": "input", "label": "연락처" },
+        { "type": "input", "label": "한 줄 소개" },
+        { "type": "notice", "label": "연락처는 모임장에게만 보여요." },
+        { "type": "button", "label": "신청 보내기", "action": "submit" }
+      ],
+      "actions": [
+        { "id": "submit", "label": "신청 보내기", "to": "apply-sending" },
+        { "id": "invalid", "label": "형식이 틀린 채 보내기", "to": "apply-invalid", "kind": "system" },
+        { "id": "back", "label": "뒤로", "to": "group-detail", "kind": "back" }
+      ]
+    },
+    {
+      "id": "apply-invalid",
+      "title": "입력 오류",
+      "stage": "apply",
+      "state": "error",
+      "origin": "inferred",
+      "wireframe": [
+        { "type": "header", "label": "참여 신청" },
+        { "type": "input", "label": "이름" },
+        { "type": "input", "label": "연락처 · 형식을 확인해 주세요" },
+        { "type": "button", "label": "고쳐서 다시 보내기", "action": "fix" }
+      ],
+      "actions": [
+        { "id": "fix", "label": "연락처 고치기", "to": "apply-form" }
+      ]
+    },
+    {
+      "id": "apply-sending",
+      "title": "보내는 중",
+      "stage": "apply",
+      "state": "loading",
+      "origin": "inferred",
+      "wireframe": [
+        { "type": "header", "label": "참여 신청" },
+        { "type": "notice", "label": "신청을 보내는 중이에요…" }
+      ],
+      "actions": [
+        { "id": "sent", "label": "전송 성공", "to": "apply-done", "kind": "system" },
+        { "id": "failed", "label": "전송 실패", "to": "apply-failed", "kind": "system" }
+      ]
+    },
+    {
+      "id": "apply-failed",
+      "title": "전송 실패",
+      "stage": "apply",
+      "state": "error",
+      "origin": "inferred",
+      "conditions": ["입력값은 지우지 않는다."],
+      "wireframe": [
+        { "type": "header", "label": "참여 신청" },
+        { "type": "notice", "label": "네트워크 문제로 신청을 보내지 못했어요." },
+        { "type": "button", "label": "다시 시도", "action": "retry" }
+      ],
+      "actions": [
+        { "id": "retry", "label": "다시 시도", "to": "apply-sending" },
+        { "id": "edit", "label": "신청서로 돌아가기", "to": "apply-form", "kind": "secondary" }
+      ]
+    },
+    {
+      "id": "apply-done",
+      "title": "신청 완료",
+      "stage": "result",
+      "state": "success",
+      "origin": "source",
+      "rationale": "요구사항 3.3: 신청 직후 다음에 무엇이 일어나는지 알려 준다.",
+      "wireframe": [
+        { "type": "title", "label": "신청을 보냈어요" },
+        { "type": "text", "label": "모임장이 확인하면 알림으로 알려 드려요." },
+        { "type": "button", "label": "내 신청 보기", "action": "view-mine" }
+      ],
+      "actions": [
+        { "id": "view-mine", "label": "내 신청 보기", "to": "my-applications" },
+        { "id": "more", "label": "다른 모임 보기", "to": "group-list", "kind": "secondary" }
+      ],
+      "end": true
+    },
+    {
+      "id": "my-applications",
+      "title": "내 신청",
+      "stage": "result",
+      "origin": "source",
+      "rationale": "요구사항 4.1: 보낸 신청과 상태(대기, 확정, 거절)를 한곳에서 본다.",
+      "wireframe": [
+        { "type": "header", "label": "내 신청" },
+        { "type": "list", "items": ["영어 회화 · 대기 중", "독서 토론 · 확정"] },
+        { "type": "tabs", "items": ["찾기", "내 신청", "프로필"] }
+      ],
+      "actions": [
+        { "id": "tab-find", "label": "찾기 탭", "to": "group-list", "kind": "tab" }
+      ],
+      "end": true
+    },
+    {
+      "id": "my-applications-empty",
+      "title": "신청 없음",
+      "stage": "result",
+      "state": "empty",
+      "origin": "inferred",
+      "wireframe": [
+        { "type": "header", "label": "내 신청" },
+        { "type": "notice", "label": "아직 보낸 신청이 없어요." },
+        { "type": "button", "label": "모임 찾으러 가기", "action": "find" }
+      ],
+      "actions": [
+        { "id": "find", "label": "모임 찾으러 가기", "to": "group-list" }
+      ]
+    }
+  ],
+  "entries": ["my-applications-empty"],
+  "scenarios": [
+    {
+      "id": "join",
+      "title": "모임 찾아 신청하기",
+      "kind": "main",
+      "steps": [
+        { "screen": "group-list", "action": "open-group" },
+        { "screen": "group-detail", "action": "apply" },
+        { "screen": "apply-form", "action": "submit" },
+        { "screen": "apply-sending", "action": "sent" },
+        { "screen": "apply-done", "action": "view-mine" }
+      ]
+    },
+    {
+      "id": "retry-after-failure",
+      "title": "전송 실패 후 다시 시도",
+      "kind": "recovery",
+      "steps": [
+        { "screen": "group-list", "action": "open-group" },
+        { "screen": "group-detail", "action": "apply" },
+        { "screen": "apply-form", "action": "submit" },
+        { "screen": "apply-sending", "action": "failed" },
+        { "screen": "apply-failed", "action": "retry" },
+        { "screen": "apply-sending", "action": "sent" }
+      ]
+    },
+    {
+      "id": "fix-invalid-input",
+      "title": "입력 오류 고치기",
+      "kind": "recovery",
+      "start": "apply-form",
+      "steps": [
+        { "screen": "apply-form", "action": "invalid" },
+        { "screen": "apply-invalid", "action": "fix" },
+        { "screen": "apply-form", "action": "submit" }
+      ]
+    },
+    {
+      "id": "empty-search",
+      "title": "검색 결과가 없을 때",
+      "kind": "edge",
+      "steps": [
+        { "screen": "group-list", "action": "search-none" },
+        { "screen": "group-list-empty", "action": "reset" }
+      ]
+    }
+  ],
+  "decisions": [
+    {
+      "id": "approval-policy",
+      "screen": "apply-form",
+      "question": "신청하면 바로 확정인가, 모임장 승인을 기다리는가?",
+      "options": ["바로 확정", "모임장 승인 대기"],
+      "status": "open"
+    }
+  ],
+  "issues": [
+    {
+      "id": "double-submit",
+      "screen": "apply-sending",
+      "severity": "S3",
+      "category": "feedback",
+      "title": "보내는 중에 다시 누르면 신청이 두 번 갈 수 있다",
+      "detail": "보내는 중 화면에 취소나 진행 표시가 없어서 사용자가 뒤로 가서 다시 보낼 수 있다.",
+      "suggestion": "보내는 동안 신청 버튼을 잠그고, 같은 모임에 대기 중인 신청이 있으면 알려 준다.",
+      "origin": "ai-review",
+      "status": "open"
+    },
+    {
+      "id": "empty-copy",
+      "screen": "group-list-empty",
+      "severity": "S4",
+      "category": "copy",
+      "title": "빈 상태 문구가 다음 행동을 제안하지 않는다",
+      "suggestion": "가까운 지역이나 비슷한 주제를 추천하는 문구와 버튼을 더한다.",
+      "origin": "ai-review",
+      "status": "open"
+    }
+  ],
+  "requests": [
+    {
+      "id": "map-on-top",
+      "screen": "group-detail",
+      "text": "모임 장소를 지도로 먼저 보여 주세요.",
+      "status": "done",
+      "resolution": "상단에 지도 이미지 블록을 넣었다."
+    }
+  ]
+}

@@ -15,6 +15,7 @@ Claude의 진입점은 `CLAUDE.md → @AGENTS.md`이고, Codex도 이 파일을 
 1. `{{dev_harness_path}}`: 역할 분담, 프로세스, 백엔드 협업, 검사, 기록 규칙
 2. `.harness/config.json`: 모델, 검사 명령, QA 포트 (모델명은 이 파일에만 있다)
 3. `{{handoff_path}}`: 지난 세션이 남긴 시작점 (있으면)
+4. `{{flows_dir}}/*.flow.json`: 확정된 화면과 흐름 (화면 작업일 때)
 
 ## 역할
 {{#codex}}
