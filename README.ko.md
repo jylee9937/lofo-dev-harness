@@ -4,7 +4,7 @@
 
 실제로 운영한 사이드 프로젝트 세 개의 하네스를 합쳤습니다. 프로젝트마다 복사하던 규칙·훅·스킬·스크립트가 서로 갈라지는 문제를 없애는 것이 가장 큰 목표입니다.
 
-> **상태: 뼈대 단계.** 플러그인 설치는 되지만 아직 스킬과 훅이 없습니다. 현재 설계는 [`docs/design.ko.md`](docs/design.ko.md)에 있습니다. [English README](README.md)
+> **상태: v0.2.** 협업 모드 프로젝트에서 쓸 수 있습니다. Next.js·Supabase·Vercel은 전용 프리셋이 있고, 다른 스택은 일반 규칙이 들어갑니다. 자율 모드, QA 모듈, 추가 프리셋이 다음 순서입니다. 설계는 [`docs/design.ko.md`](docs/design.ko.md)에 있습니다. [English README](README.md)
 
 ## 설치
 
@@ -21,25 +21,48 @@ Claude Code 2.1.275 이상:
 /plugin install lofo-dev-harness@lofo-dev-harness
 ```
 
-스킬은 `/lofo-dev-harness:<스킬>` 형태로 부릅니다. 예: `/lofo-dev-harness:init`
+**필요한 것:**
+- Claude Code, git, Python 3.8 이상 (표준 라이브러리만 씁니다)
+- 선택:
+  - [Codex CLI](https://github.com/openai/codex) 또는 Claude Code용 Codex 플러그인
+  - PR을 만들 때 GitHub CLI(`gh`)
 
-## 계획
+## 사용법
 
-- **Claude Code 플러그인 마켓플레이스.** 스킬·훅·에이전트를 한 곳에서 관리하므로 업데이트가 모든 프로젝트에 반영됩니다.
-- **`init` 스킬.** 문서 언어, 운영 모드, 프레임워크, DB, 배포 방식, 통과 검사 명령, 함께 쓸 도구, Codex 모델을 하나씩 묻습니다. 그런 다음 프로젝트에 `AGENTS.md`, `CLAUDE.md`, `docs/`, `.harness/config.json`을 만듭니다. Codex도 같은 `AGENTS.md`를 읽습니다.
-- **공통 core 위의 두 모드.**
-  - *협업 모드*: 커밋·PR은 요청할 때만 합니다.
-  - *자율 모드*: 정해진 시간에 혼자 작업하고, 오너에게 물을 결정을 모아 두고, Codex 보안 관문을 통과한 뒤에만 병합합니다.
-- **스택 중립 core + 프리셋.** 첫 프리셋은 Next.js + Supabase + Vercel이고, Firebase·GCP·AWS를 추가할 예정입니다.
+| 명령 | 하는 일 |
+|---|---|
+| `/lofo-dev-harness:init` | 문서 언어, 운영 모드, 프레임워크, DB, 배포 방식, 통과 검사 명령, 함께 쓸 도구, Codex 모델을 하나씩 묻습니다. 그 답으로 `.harness/config.json`을 쓰고 하네스 파일을 만듭니다. 설정을 직접 고친 뒤에는 `--refresh`로 다시 실행합니다. |
+| `/lofo-dev-harness:start-task <작업 설명>` | 커밋하지 않은 변경을 확인하고, 기본 브랜치를 최신으로 받고, 브랜치 이름을 제안해 만듭니다. 그다음 하네스를 불러오고 작업이 어느 단계에서 시작하는지 알려 줍니다. |
+| `/lofo-dev-harness:codex-delegate <작업>` | 구현·리뷰·진단을 설정의 모델과 effort로 Codex에 맡깁니다. 결과를 받으면 실제 결과를 찾아 diff를 확인하고 검사를 돌립니다. |
+
+`PreToolUse` 훅은 Claude가 소스 파일을 직접 고치기 직전에 "Codex에 먼저 맡기라"고 알려 줍니다. 백엔드 민감 경로에서는 더 강하게 알려 줍니다. 훅은 작업을 막지 않습니다. `.harness/config.json`이 없거나 Codex를 쓰지 않는 프로젝트에서는 아무것도 하지 않습니다.
+
+### init이 만드는 파일
+
+| 파일 | 내용 |
+|---|---|
+| `.harness/config.json` | 모델명, 통과 검사 명령, QA 포트, 라우팅 패턴을 모은 단일 설정. 커밋합니다. |
+| `AGENTS.md` | `<!-- lofo-dev-harness:start -->`와 `<!-- lofo-dev-harness:end -->` 사이의 하네스 블록. Claude와 Codex가 같이 읽습니다. |
+| `CLAUDE.md` | `@AGENTS.md` 가져오기 |
+| `docs/dev-harness.md` | 역할, 프로세스, 스택별 규칙, 백엔드 협업, 검사, 기록 규칙 (관리 블록) |
+| `.gitignore` | 내 컴퓨터에만 해당하는 값을 담는 `.harness/config.local.json`, `.harness/local/` |
+
+다시 렌더링해도 마커 안쪽만 바뀝니다. 마커 바깥에 직접 쓴 내용은 그대로 남습니다.
 
 ## 설정
-
-프로젝트마다 커밋하는 설정 파일 `.harness/config.json` 하나를 모든 스킬·훅·스크립트가 읽습니다. 모델명, 통과 검사 명령, QA 포트, 백엔드 경로 패턴이 여기에 있어서 모델을 바꿀 때는 한 줄만 고치면 됩니다.
 
 - 스키마: [`schemas/harness-config.schema.json`](schemas/harness-config.schema.json)
 - 예시: [협업 모드, Next.js + Supabase + Vercel](examples/nextjs-supabase-vercel.config.json), [자율 모드](examples/autonomous.config.json)
 
-로컬 경로처럼 내 컴퓨터에만 해당하는 값은 이 파일에 넣지 않습니다. git에서 제외되는 `.harness/config.local.json`에 둡니다.
+로컬 경로처럼 내 컴퓨터에만 해당하는 값은 `config.json`에 넣지 않습니다. git에서 제외되는 `.harness/config.local.json`에 둡니다.
+
+## 개발
+
+```bash
+python3 -m unittest discover -s tests       # 렌더러·훅 테스트
+claude plugin validate . --strict           # 플러그인·마켓플레이스 매니페스트 검사
+claude --plugin-dir .                       # 로컬 체크아웃으로 플러그인 써 보기
+```
 
 ## 라이선스
 

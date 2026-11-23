@@ -1,0 +1,1 @@
+- This project has no database. If it needs one later, change `stack.db` in `.harness/config.json` and re-run `/lofo-dev-harness:init`.

@@ -1,0 +1,17 @@
+{
+  "description": "lofo-dev-harness: remind the orchestrator to delegate source edits to Codex (non-blocking, silent unless .harness/config.json enables Codex).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-routing-reminder.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+- Next.js changes APIs and conventions between versions. Before writing code, read the docs for the installed version (`node_modules/next/dist/docs/` when present) and follow deprecation notices.
+- App Router. In recent versions `params`, `searchParams`, `cookies()` and `headers()` are Promises, so `await` them.
+- Keep `app/` to thin routing and put logic in layers under `src/`. FSD (`shared → entities → features → widgets`) is the recommended structure.
+- Guard server-only code (secret keys, admin clients) with `import "server-only"` so it never reaches the client bundle.
+- Keep data behind server components or provider functions and have UI components take props only, so a data source can change without touching the UI.
+- If the project has rules such as "colors only from design tokens" or "images only from local files", enforce them with check scripts and add those to `gates`.

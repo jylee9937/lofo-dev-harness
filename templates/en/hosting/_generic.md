@@ -1,0 +1,5 @@
+- There is no preset for this hosting environment yet. Only the principles below apply; write the specific rules under "Project-specific rules" in this doc.
+- Write down how deploys happen (CI or manual), what reaches production and when, and where environment variables and secrets are managed.
+- Keep secrets in a secret manager or the deploy environment's settings. Never print or commit them.
+- Production deploys and infrastructure changes (servers, networking, permissions, domains) happen only after the user confirms.
+- Gates and e2e pass before a deploy. After a deploy, check its health and know how to roll back.

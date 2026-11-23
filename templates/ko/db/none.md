@@ -1,0 +1,1 @@
+- 이 프로젝트는 DB를 쓰지 않는다. DB가 필요해지면 `.harness/config.json`의 `stack.db`를 바꾸고 `/lofo-dev-harness:init`을 다시 실행한다.
