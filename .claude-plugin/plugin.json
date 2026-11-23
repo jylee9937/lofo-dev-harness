@@ -1,0 +1,14 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "lofo-dev-harness",
+  "version": "0.1.0",
+  "description": "Development harness for Claude Code as orchestrator and Codex as implementation/review worker: one config file, gates, QA, and collaborative or autonomous modes.",
+  "author": {
+    "name": "lofo",
+    "url": "https://github.com/jylee9937"
+  },
+  "homepage": "https://github.com/jylee9937/lofo-dev-harness",
+  "repository": "https://github.com/jylee9937/lofo-dev-harness",
+  "license": "MIT",
+  "keywords": ["claude-code", "codex", "harness", "workflow", "orchestration", "qa"]
+}

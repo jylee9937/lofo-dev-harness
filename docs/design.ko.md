@@ -100,6 +100,8 @@ C. 웹사이트          (따로 발전한 자율 운영형: "AI가 만들고 �
 2. **스택 범위**: 스택에 묶이지 않는 core + 프리셋. init에서 **DB, 서버·배포 방식을 질문해서 결정**합니다 (예: Supabase / Firebase, Vercel / GCP / AWS 직접 서빙). 첫 프리셋은 Next.js + Supabase + Vercel.
 3. **배포 형태**: Claude Code **플러그인 마켓플레이스** + 프로젝트 파일을 질문하며 만드는 **init 스킬**. 스킬·훅·에이전트는 플러그인 한 곳에서 관리해 업데이트가 모든 프로젝트에 반영됩니다.
 4. **언어**: README·스킬 본문은 영어, `README.ko.md`는 별도. init에서 프로젝트 문서 언어(ko/en)를 고르면 그 언어로 템플릿을 만듭니다.
+5. **플러그인 이름**: 저장소·마켓플레이스·플러그인 모두 `lofo-dev-harness`. 스킬은 `/lofo-dev-harness:init`처럼 부릅니다.
+6. **라이선스**: MIT.
 
 ## 7. 저장소 구조안
 
@@ -109,7 +111,7 @@ lofo-dev-harness/
 │  ├─ plugin.json              # 플러그인 정보
 │  └─ marketplace.json         # 이 저장소를 바로 마켓플레이스로 등록
 ├─ skills/
-│  ├─ harness-init/            # 질문을 하나씩 받아 프로젝트 파일 생성
+│  ├─ init/                    # 질문을 하나씩 받아 프로젝트 파일 생성
 │  ├─ start-task/              # main 최신화 → 브랜치 생성 → 하네스 로드
 │  ├─ codex-delegate/          # Codex 위임 규칙, 지시문 틀, 결과 회수 요령
 │  ├─ security-gate/           # ★ 관문: 인증·돈·비밀값·권한은 Codex 검토, GO/NO-GO
@@ -129,6 +131,8 @@ lofo-dev-harness/
 │     ├─ framework/nextjs/
 │     ├─ db/{supabase,firebase,postgres,none}/
 │     └─ hosting/{vercel,gcp,aws}/
+├─ schemas/                    # .harness/config.json 스키마
+├─ examples/                   # 설정 예시
 ├─ docs/                       # 하네스 자체 설명 (개념, 모드, 프리셋 만드는 법)
 ├─ README.md / README.ko.md
 └─ LICENSE
@@ -139,28 +143,24 @@ lofo-dev-harness/
 init이 프로젝트에 설정 파일 하나를 만들고, 훅·스크립트·스킬은 모두 이 파일을 읽습니다.
 모델이 바뀌면 이 파일 한 곳만 고칩니다.
 
-```jsonc
-{
-  "language": "ko",
-  "mode": "collab",                      // collab | autonomous
-  "stack": {
-    "framework": "nextjs",
-    "db": "supabase",                    // supabase | firebase | postgres | none
-    "hosting": "vercel",                 // vercel | gcp | aws | other
-    "packageManager": "pnpm"
-  },
-  "models": {
-    "codex": { "model": "<codex-model>", "effort": "xhigh" },
-    "fallback": ["<claude-large>", "<claude-medium>", "<claude-small>"]
-  },
-  "gates": ["pnpm lint", "pnpm typecheck", "pnpm build"],
-  "qa": { "port": 3100 },
-  "backendPaths": ["supabase/migrations/", "/api/", "actions.ts"],
-  "integrations": { "notes": false, "figma": true, "gstack": false }
-}
-```
+- 형식: [`schemas/harness-config.schema.json`](../schemas/harness-config.schema.json) (JSON Schema 2020-12)
+- 예시: [`examples/nextjs-supabase-vercel.config.json`](../examples/nextjs-supabase-vercel.config.json), [`examples/autonomous.config.json`](../examples/autonomous.config.json)
 
-## 9. harness-init이 묻는 것 (하나씩)
+| 항목 | 내용 |
+|---|---|
+| `version`, `language`, `mode` | 설정 형식 버전, 문서 언어(ko/en), 운영 모드(collab/autonomous) |
+| `stack` | 프레임워크, DB(supabase/firebase/postgres/none/other), 배포(vercel/gcp/aws/other), 패키지 매니저 |
+| `models` | Codex 사용 여부·모델·effort (사용하면 모델 필수), Claude fallback 순서 (opus 같은 별칭 사용) |
+| `gates`, `e2e` | 완료 전에 모두 통과해야 하는 명령. 오프라인 실행 가능 여부 표시 |
+| `qa` | QA 전용 포트, 시각 리뷰 뷰포트 |
+| `codexRouting` | 라우팅 훅이 쓰는 경로 정규식 (소스 코드, 제외, 백엔드 민감 경로) |
+| `docs` | 하네스 문서·핸드오프 위치, 핸드오프 크기 상한 |
+| `integrations` | 노트 앱, 디자인 도구, gstack, 할 일 앱 |
+| `autonomous` | 자율 모드일 때 필수: 시간대, 작업 시간, 정리 시각, 결정 질문 시각, 주간 사용량 상한 |
+
+로컬 경로처럼 내 컴퓨터에만 해당하는 값은 이 파일에 넣지 않고, git에서 제외되는 `.harness/config.local.json`에 둡니다.
+
+## 9. init이 묻는 것 (하나씩)
 
 1. 프로젝트 문서 언어 (ko / en)
 2. 운영 모드 (협업 / 자율)
@@ -175,7 +175,7 @@ init이 프로젝트에 설정 파일 하나를 만들고, 훅·스크립트·�
 
 ## 10. 만드는 순서
 
-1. **뼈대**: 플러그인 정보, 마켓플레이스, README 두 개, LICENSE, config 형식
+1. **뼈대** ✅: 플러그인 정보, 마켓플레이스, README 두 개, LICENSE, config 형식
 2. **core + 협업 모드 + Next/Supabase/Vercel 프리셋**: 세 프로젝트의 공통 부분을 옮기고 개인 정보를 걸러 냄
 3. **훅과 스킬**: 라우팅 훅, start-task, codex-delegate, security-gate, tech-design
 4. **QA 모듈**
