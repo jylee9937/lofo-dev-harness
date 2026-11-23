@@ -71,7 +71,7 @@ If there is no config, say "the harness is not set up here; run `/lofo-dev-harne
 Then decide:
 - **Starting stage**, using §2 of the dev-harness doc:
   - a new feature without written requirements → stage 1
-  - requirements exist but there is no design → stage 2 or 3
+  - requirements exist but there is no design → stage 2 or 3. A new screen or a changed user flow starts at stage 2 with `/lofo-dev-harness:wireflow`.
   - a bug fix or small change → stage 5. With Codex enabled, start with a read-only Codex diagnosis.
 - **Backend-sensitive work**: the task touches the database, auth, server boundaries or migrations, or the likely files match `codexRouting.backend`. Plan to explain concepts and options before implementing (§6 of the doc), and say so.
 - **Codex**: if `models.codex.enabled`, say that implementation, review and diagnosis go to Codex through `/lofo-dev-harness:codex-delegate`, with the configured model and effort.

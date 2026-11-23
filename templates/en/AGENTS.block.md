@@ -15,6 +15,7 @@ Claude enters through `CLAUDE.md → @AGENTS.md`, and Codex reads this same file
 1. `{{dev_harness_path}}`: roles, process, backend collaboration, gates, records
 2. `.harness/config.json`: models, gate commands, QA port (model names live only in this file)
 3. `{{handoff_path}}`: where the last session left off (if present)
+4. `{{flows_dir}}/*.flow.json`: approved screens and flows (for UI work)
 
 ## Roles
 {{#codex}}

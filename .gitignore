@@ -16,3 +16,9 @@
 # Python
 __pycache__/
 *.pyc
+
+# Local browser-test output
+.playwright-mcp/
+
+# Generated wireflow boards
+*.wireflow.html

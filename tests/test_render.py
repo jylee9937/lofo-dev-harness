@@ -54,6 +54,10 @@ class RenderBasics(ProjectTestCase):
         self.assertNotIn("gpt-", agents, "model names must stay in config.json only")
         self.assertEqual(self.read("CLAUDE.md"), "@AGENTS.md\n")
         self.assertIn(".harness/config.local.json", self.read(".gitignore"))
+        self.assertIn("*.wireflow.html", self.read(".gitignore"))
+        doc = self.read("docs/dev-harness.md")
+        self.assertIn("/lofo-dev-harness:wireflow", doc)
+        self.assertIn("Figma에 같은 화면, 화살표, 검토 표시를 그린다", doc)
 
     def test_rerun_is_idempotent_and_check_reports(self):
         self.write_config(EXAMPLE)
@@ -200,6 +204,8 @@ class Variants(ProjectTestCase):
         self.assertIn("Google Cloud", doc)
         self.assertIn("not configured yet", doc)
         self.assertIn("No integrations configured", doc)
+        self.assertIn("No design tool: review on the HTML board.", doc)
+        self.assertIn("`design/flows/*.flow.json`", self.read("AGENTS.md"))
         self.assertIn("`npm run dev`", self.read("AGENTS.md"))
         self.assertNotIn("codex-delegate", self.read("AGENTS.md"))
 

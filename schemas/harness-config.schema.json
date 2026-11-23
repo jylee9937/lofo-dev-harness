@@ -175,6 +175,11 @@
           "type": "string",
           "default": "docs/qa-harness.md"
         },
+        "flows": {
+          "type": "string",
+          "default": "design/flows",
+          "description": "Folder for wireflow files (<id>.flow.json) used by /lofo-dev-harness:wireflow."
+        },
         "handoff": {
           "type": "string",
           "default": ".harness/handoff.md",
