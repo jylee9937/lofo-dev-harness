@@ -105,38 +105,44 @@ C. 웹사이트          (따로 발전한 자율 운영형: "AI가 만들고 �
 
 ## 7. 저장소 구조안
 
+✅ = v0.2에 있음, 나머지는 예정.
+
 ```
 lofo-dev-harness/
 ├─ .claude-plugin/
-│  ├─ plugin.json              # 플러그인 정보
-│  └─ marketplace.json         # 이 저장소를 바로 마켓플레이스로 등록
+│  ├─ plugin.json              ✅ 플러그인 정보
+│  └─ marketplace.json         ✅ 이 저장소를 바로 마켓플레이스로 등록
 ├─ skills/
-│  ├─ init/                    # 질문을 하나씩 받아 프로젝트 파일 생성
-│  ├─ start-task/              # main 최신화 → 브랜치 생성 → 하네스 로드
-│  ├─ codex-delegate/          # Codex 위임 규칙, 지시문 틀, 결과 회수 요령
+│  ├─ init/                    ✅ 질문을 하나씩 받아 설정을 쓰고 프로젝트 파일 생성
+│  ├─ start-task/              ✅ 기본 브랜치 최신화 → 브랜치 생성 → 하네스 로드
+│  ├─ codex-delegate/          ✅ Codex 위임 규칙, 지시문 틀, 결과 회수 요령
 │  ├─ security-gate/           # ★ 관문: 인증·돈·비밀값·권한은 Codex 검토, GO/NO-GO
 │  ├─ tech-design/             # 기술설계 문서 6개 섹션, 백엔드 설명 규칙
 │  ├─ qa/                      # L0~L3 QA 단계, findings 형식, 시각 리뷰 루브릭
 │  ├─ handoff/                 # 핸드오프 작성·정리 (크기 상한)
 │  └─ night-shift/             # 자율 모드 전용: 밤 계획, 아침 정리, 오너 질문 목록
 ├─ hooks/
-│  ├─ hooks.json
-│  └─ codex-routing-reminder.py   # 감시할 경로 패턴을 프로젝트 설정에서 읽음
+│  ├─ hooks.json               ✅
+│  └─ codex-routing-reminder.py ✅ 감시할 경로 패턴을 프로젝트 설정에서 읽음
 ├─ agents/                     # QA 판단 에이전트 (시각, 흐름, 반박 검증)
-├─ scripts/                    # Codex 러너·재시도·연쇄 실행, DB 잠금, worktree 생성
-├─ templates/
-│  ├─ core/{en,ko}/            # AGENTS.md, CLAUDE.md, docs/dev-harness.md, docs/qa-harness.md
-│  ├─ modes/{collab,autonomous}/
-│  └─ presets/
-│     ├─ framework/nextjs/
-│     ├─ db/{supabase,firebase,postgres,none}/
-│     └─ hosting/{vercel,gcp,aws}/
-├─ schemas/                    # .harness/config.json 스키마
-├─ examples/                   # 설정 예시
+├─ scripts/
+│  ├─ render.py                ✅ 설정 → AGENTS.md 블록, CLAUDE.md, 하네스 문서, .gitignore
+│  └─ …                        # Codex 러너·재시도·연쇄 실행, DB 잠금, worktree 생성
+├─ templates/{ko,en}/          ✅ 두 언어가 같은 파일 구성
+│  ├─ AGENTS.block.md, dev-harness.md
+│  ├─ modes/{collab,autonomous}.md
+│  ├─ framework/{nextjs,_generic}.md
+│  ├─ db/{supabase,none,_generic}.md
+│  └─ hosting/{vercel,_generic}.md
+├─ schemas/                    ✅ .harness/config.json 스키마
+├─ examples/                   ✅ 설정 예시
+├─ tests/                      ✅ 렌더러·훅 테스트 (unittest)
 ├─ docs/                       # 하네스 자체 설명 (개념, 모드, 프리셋 만드는 법)
-├─ README.md / README.ko.md
-└─ LICENSE
+├─ README.md / README.ko.md    ✅
+└─ LICENSE                     ✅
 ```
+
+프리셋이 없는 값(Firebase, PostgreSQL, GCP, AWS, 기타 프레임워크)은 `_generic.md`가 쓰입니다. 일반 원칙만 들어가고, 구체 규칙은 프로젝트가 직접 채웁니다.
 
 ## 8. 설정은 한 곳에: `.harness/config.json`
 
@@ -171,13 +177,13 @@ init이 프로젝트에 설정 파일 하나를 만들고, 훅·스크립트·�
 7. 함께 쓸 도구 (노트 앱, Figma, gstack, 할 일 앱 등, 여러 개 선택)
 8. Codex 사용 여부와 모델
 
-이미 있는 프로젝트에 적용할 때는 `<!-- HARNESS:START -->` ~ `<!-- HARNESS:END -->` 블록 안쪽만 만들거나 다시 씁니다. 프로젝트에서 직접 쓴 규칙은 그대로 둡니다.
+이미 있는 프로젝트에 적용할 때는 `<!-- lofo-dev-harness:start -->` ~ `<!-- lofo-dev-harness:end -->` 블록 안쪽만 만들거나 다시 씁니다. 프로젝트에서 직접 쓴 규칙은 그대로 둡니다. 예전 하네스 블록과 겹치는 내용이 있으면 init이 목록으로 보여 주고, 지울지 물어봅니다.
 
 ## 10. 만드는 순서
 
 1. **뼈대** ✅: 플러그인 정보, 마켓플레이스, README 두 개, LICENSE, config 형식
-2. **core + 협업 모드 + Next/Supabase/Vercel 프리셋**: 세 프로젝트의 공통 부분을 옮기고 개인 정보를 걸러 냄
-3. **훅과 스킬**: 라우팅 훅, start-task, codex-delegate, security-gate, tech-design
+2. **core + 협업 모드 + Next/Supabase/Vercel 프리셋** ✅ (v0.2): 세 프로젝트의 공통 부분을 옮기고 개인 정보를 걸러 냄. 프리셋이 없는 스택은 일반 규칙.
+3. **훅과 스킬**: 라우팅 훅, init, start-task, codex-delegate ✅ (v0.2) / security-gate, tech-design, handoff는 다음
 4. **QA 모듈**
 5. **자율 모드**: night-shift, Codex 러너 스크립트, worktree 슬롯과 DB 잠금
 6. **추가 프리셋**: Firebase, GCP, AWS
@@ -189,7 +195,7 @@ init이 프로젝트에 설정 파일 하나를 만들고, 훅·스크립트·�
 이 저장소는 공개됩니다. 다음은 넣지 않습니다.
 
 - 홈 디렉터리 절대 경로, 개인 노트 볼트 경로, 실행 파일 경로
-- 개인 이메일 (커밋 작성자는 GitHub noreply 주소 사용)
+- 문서·설정·스크립트 안의 개인 이메일 (커밋 작성자 이메일은 저장소 주인이 정함)
 - 클라우드 프로젝트 ID (DB 프로젝트 ref, 배포 미리보기 URL 등)
 - 비공개 원본 저장소 이름, 단체·사람 이름, 내부 결정 기록
 - 서드파티 스킬 팩 사본 (복사하지 않고 선택 의존성으로 링크)

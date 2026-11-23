@@ -1,0 +1,6 @@
+- Next.js는 버전마다 API와 규칙이 바뀐다. 코드를 쓰기 전에 설치된 버전의 문서(`node_modules/next/dist/docs/`가 있으면 그것)를 확인하고 deprecation 안내를 따른다.
+- App Router 기준이다. 최신 버전에서 `params`, `searchParams`, `cookies()`, `headers()`는 Promise이므로 `await`한다.
+- `app/`에는 라우팅만 얇게 두고, 로직은 `src/` 아래 계층으로 나눈다. 권장 구조는 FSD(`shared → entities → features → widgets`)다.
+- 서버 전용 코드(비밀 키, 관리자 클라이언트)는 `import "server-only"`로 막아 클라이언트 번들에 들어가지 않게 한다.
+- 데이터는 서버 컴포넌트나 provider 함수 뒤에 두고, UI 컴포넌트는 props만 받게 한다. 데이터 소스를 바꿀 때 UI를 고치지 않아도 된다.
+- 색은 디자인 토큰만, 이미지는 저장소 안 로컬 파일만 쓰는 규칙을 두었다면 검사 스크립트로 강제하고 `gates`에 넣는다.

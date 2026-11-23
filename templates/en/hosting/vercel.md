@@ -1,0 +1,4 @@
+- Deploy through the Vercel Git integration. Check whether merging to the default branch deploys to production; if it does, gates and e2e must pass before every merge.
+- Check changes on the preview deployment each PR gets.
+- Manage environment variables in the Vercel project settings. Never print or commit their values. Locally, use `.env.local` (gitignored).
+- Production deploys and changes to domains or environment variables need the user's confirmation.

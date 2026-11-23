@@ -1,0 +1,4 @@
+- There is no preset for this framework yet. Only the principles below apply; write the specific rules under "Project-specific rules" in this doc.
+- Before writing code, read the official docs for the installed version and follow deprecation notices.
+- Keep routing and entry points thin and put logic in layers.
+- Code that uses secret keys or admin credentials stays on the server and never reaches the client bundle or logs.

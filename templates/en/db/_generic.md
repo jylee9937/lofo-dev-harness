@@ -1,0 +1,6 @@
+- There is no preset for this database or backend yet. Only the principles below apply; write the specific rules under "Project-specific rules" in this doc.
+- Keep the files that define the schema and access rules (security rules) in the repository. A change made in a console counts only once it is in those files.
+- Write down in the technical design whether each access rule is public read, owner only or staff.
+- Credentials that bypass access rules are used only on the server, in the places the technical design lists.
+- Try changes on a local emulator or a development database first.
+- Production database changes need the user's confirmation and go **backup → preview → apply → verify**.

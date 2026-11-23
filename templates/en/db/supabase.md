@@ -1,0 +1,6 @@
+- `supabase/migrations/` is the source of truth for the schema and access rules. A change made in the dashboard counts only once it is in a migration file.
+- Enable RLS on every table. Write down in the technical design whether each policy is public read, owner only or staff.
+- Check `GRANT`s too. Even with RLS, broad grants to `anon` or `authenticated` change what is exposed.
+- The `service_role` key bypasses RLS. Use it only inside the server boundary, in the places the technical design lists. Never put it in client code, logs or commits.
+- Apply new migrations to a local database (`supabase start`) first, and test access rules by running real queries as each role.
+- Applying to the hosted database needs the user's confirmation and goes **backup → dry-run → apply → verify**.
