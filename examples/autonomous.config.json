@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jylee9937/lofo-dev-harness/main/schemas/harness-config.schema.json",
+  "version": 1,
+  "language": "en",
+  "mode": "autonomous",
+  "stack": {
+    "framework": "nextjs",
+    "db": "supabase",
+    "hosting": "vercel",
+    "packageManager": "pnpm"
+  },
+  "models": {
+    "codex": { "enabled": true, "model": "gpt-6.1-sol", "effort": "xhigh" },
+    "claudeFallback": ["opus", "sonnet", "haiku"]
+  },
+  "gates": [
+    { "name": "lint", "run": "pnpm lint" },
+    { "name": "typecheck", "run": "pnpm typecheck" },
+    { "name": "test", "run": "pnpm test" },
+    { "name": "build", "run": "pnpm build", "offline": false }
+  ],
+  "e2e": { "run": "pnpm test:e2e", "tool": "playwright" },
+  "autonomous": {
+    "timezone": "Asia/Seoul",
+    "workWindow": { "start": "00:00", "end": "08:00" },
+    "wrapUpAt": "07:50",
+    "decisionsAt": "09:00",
+    "stopAtWeeklyUsagePct": 95
+  }
+}
