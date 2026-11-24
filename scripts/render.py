@@ -41,8 +41,10 @@ DESIGNS = ("none", "figma", "pencil", "other")
 TASKS = ("none", "ticktick", "github-issues", "other")
 TOP_LEVEL_KEYS = {
     "$schema", "version", "language", "mode", "stack", "models", "gates", "e2e",
-    "qa", "codexRouting", "docs", "integrations", "autonomous",
+    "qa", "codexRouting", "docs", "integrations", "security", "autonomous",
 }
+SUBSTITUTES = ("hold", "wait", "allow")
+AUDIT_LEVELS = ("low", "moderate", "high", "critical")
 
 DEV_CMD = {"pnpm": "pnpm dev", "npm": "npm run dev", "yarn": "yarn dev", "bun": "bun run dev"}
 
@@ -73,6 +75,11 @@ LABELS = {
             "pencil": "Pencil 디자인 파일에서 확정한 화면",
             "other": "확정한 화면 설계",
             "none": "화면 설계 메모 또는 와이어프레임",
+        },
+        "substitute": {
+            "hold": "Claude 독립 검토자가 임시로 보고 '임시 GO'로 기록한다. Codex GO를 받거나 사용자가 그 변경을 직접 허락하기 전에는 병합·배포하지 않는다.",
+            "wait": "대체 검토 없이 Codex를 쓸 수 있을 때까지 병합·배포를 미룬다.",
+            "allow": "Claude 독립 검토자의 GO로 진행하고 기록을 남긴다.",
         },
         "design_mirror": {
             "figma": "Figma에 같은 화면, 화살표, 검토 표시를 그린다. 파일에 처음 쓰기 전에 사용자 확인을 받는다.",
@@ -115,6 +122,11 @@ LABELS = {
             "pencil": "Screens approved in the Pencil design file",
             "other": "Approved screen design",
             "none": "Screen notes or wireframes",
+        },
+        "substitute": {
+            "hold": "a Claude independent reviewer looks first and the result is recorded as a provisional GO. Nothing is merged or deployed until Codex gives GO or the user explicitly approves that change.",
+            "wait": "there is no substitute review. Merge and deploy wait until Codex can review.",
+            "allow": "a Claude independent reviewer's GO counts, and it is recorded.",
         },
         "design_mirror": {
             "figma": "Draw the same screens, arrows and review marks in Figma. Confirm with the user before the first write to a file.",
@@ -249,6 +261,20 @@ def validate(cfg: object) -> list[str]:
         if "tasks" in integrations:
             enum("integrations.tasks", integrations["tasks"], TASKS)
 
+    security = cfg.get("security") or {}
+    if isinstance(security, dict):
+        if "substitute" in security:
+            enum("security.substitute", security["substitute"], SUBSTITUTES)
+        if "auditLevel" in security:
+            enum("security.auditLevel", security["auditLevel"], AUDIT_LEVELS)
+        for i, pattern in enumerate(security.get("sensitive") or []):
+            try:
+                re.compile(pattern)
+            except (re.error, TypeError) as exc:
+                errors.append(f"security.sensitive[{i}]: invalid regular expression ({exc})")
+    else:
+        errors.append("security: must be an object")
+
     routing = cfg.get("codexRouting") or {}
     if isinstance(routing, dict):
         for key in ("code", "exclude", "backend"):
@@ -319,6 +345,9 @@ def build_context(cfg: dict) -> tuple[str, dict, dict]:
         "design_source": labels["design_source"].get(design, labels["design_source"]["other"]),
         "design_mirror": labels["design_mirror"].get(design, labels["design_mirror"]["other"]),
         "flows_dir": docs.get("flows", "design/flows"),
+        "reviews_dir": (cfg.get("security") or {}).get("reviewsDir", "docs/security/reviews"),
+        "substitute_rule": labels["substitute"][(cfg.get("security") or {}).get("substitute", "hold")],
+        "audit_level": (cfg.get("security") or {}).get("auditLevel", "high"),
         "notes_where": notes_where,
         "integrations_list": "\n".join(lines) if lines else labels["integration"]["empty"],
     }

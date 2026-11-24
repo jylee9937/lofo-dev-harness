@@ -2,3 +2,4 @@
 - Check changes on the preview deployment each PR gets.
 - Manage environment variables in the Vercel project settings. Never print or commit their values. Locally, use `.env.local` (gitignored).
 - Production deploys and changes to domains or environment variables need the user's confirmation.
+- Scope environment variables per environment (Production, Preview, Development). Turn on Deployment Protection when previews use real data.

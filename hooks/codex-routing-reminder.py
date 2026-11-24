@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""PreToolUse hook: remind the orchestrator to delegate source edits to Codex.
+"""PreToolUse hook: Codex-first and security-gate reminders for lofo-dev-harness projects.
 
-Runs on Edit/Write/MultiEdit. When the target is a source file in a project whose
-.harness/config.json enables Codex, it adds a reminder to Claude's context:
-delegate implementation, review and diagnosis to Codex first, with the configured
-model and effort.
+Runs on Edit/Write/MultiEdit in projects that have .harness/config.json:
+- Source file and Codex enabled: delegate implementation, review and diagnosis to Codex
+  first, with the configured model and effort.
+- Security-sensitive path (auth, permissions, money, uploads, migrations, env files, plus
+  security.sensitive patterns), with or without Codex: the change needs GO from the
+  security gate before merge or deploy.
 
-Non-blocking on purpose: when Codex is unavailable or rate-limited the harness lets
-Claude edit directly, so a hard deny would contradict it. Always exits 0 and stays
-silent in projects without the harness, with Codex disabled, or for non-source files.
+Non-blocking on purpose: when Codex is unavailable the harness lets Claude edit directly,
+so a hard deny would contradict it. Always exits 0 and stays silent without the harness.
 """
 import json
 import os
@@ -30,6 +31,18 @@ DEFAULT_BACKEND = [
     r"(^|/)functions/",
 ]
 
+DEFAULT_SECURITY = [
+    r"(^|/)(auth|login|logout|sign-?in|sign-?up|session|password|oauth|callback)(/|\.|-|_)",
+    r"(^|/)(middleware|proxy)\.(ts|js)$",
+    r"(^|/)(polic(y|ies)|rls|roles?|permissions?|admin)(/|\.|-|_)",
+    r"(payment|checkout|billing|donat|invoice|refund|subscription|webhook)",
+    r"(upload|attachment|avatar)",
+    r"(^|/)(supabase/migrations|migrations|prisma)/",
+    r"(^|/)\.env",
+    r"(^|/)(firestore|storage|database)\.rules",
+]
+SECURITY_EXCLUDE = [r"^(docs|\.harness|\.claude|\.agents|node_modules)/", r"\.md$", r"(^|/)\.env\.(example|sample|template)$"]
+
 MESSAGES = {
     "ko": {
         "head": "⚠️ Codex 우선 (lofo-dev-harness): 이 소스 파일을 직접 고치기 전에 확인하세요.",
@@ -37,6 +50,7 @@ MESSAGES = {
         "route": "구현·리뷰·진단은 먼저 Codex에 맡기고 결과를 검수·통합하세요. /lofo-dev-harness:codex-delegate, 모델 {model}, effort {effort} (모델을 빼면 Codex 전역 기본값으로 바뀝니다).",
         "backend": "백엔드 민감 경로입니다. 개념과 선택지를 먼저 설명하고 사용자와 함께 정한 뒤 진행하세요.",
         "allow": "그대로 진행해도 되는 경우: 작은 연결·통합 수정, Codex 결과의 정합 수정, Codex를 쓸 수 없을 때 (대체 순서: {fallback}).",
+        "security": "🔒 보안 관문 대상 경로입니다 ({path}). 병합·배포 전에 /lofo-dev-harness:security-gate에서 GO를 받아야 합니다.",
     },
     "en": {
         "head": "⚠️ Codex first (lofo-dev-harness): check before editing this source file directly.",
@@ -44,6 +58,7 @@ MESSAGES = {
         "route": "Delegate implementation, review and diagnosis to Codex first, then verify and integrate the result. Use /lofo-dev-harness:codex-delegate with model {model} and effort {effort} (omitting the model falls back to Codex's global default).",
         "backend": "Backend-sensitive path. Explain the concepts and options first and decide together with the user before proceeding.",
         "allow": "Fine to proceed directly for: small wiring or integration edits, fixing up Codex output, or when Codex is unavailable (fallback order: {fallback}).",
+        "security": "🔒 Security gate path ({path}). Get GO from /lofo-dev-harness:security-gate before merging or deploying.",
     },
 }
 
@@ -75,9 +90,6 @@ def main():
         return
     if not isinstance(cfg, dict):
         return
-    codex = (cfg.get("models") or {}).get("codex") or {}
-    if codex.get("enabled") is not True:
-        return
 
     root_real = os.path.realpath(root)
     target = file_path if os.path.isabs(file_path) else os.path.join(root, file_path)
@@ -85,24 +97,33 @@ def main():
     if rel == ".." or rel.startswith("../"):
         return
 
-    routing = cfg.get("codexRouting") or {}
-    if not matches(routing.get("code") or DEFAULT_CODE, rel):
-        return
-    if matches(routing.get("exclude") or DEFAULT_EXCLUDE, rel):
-        return
-    is_backend = matches(routing.get("backend") or DEFAULT_BACKEND, rel)
-
     msg = MESSAGES.get(cfg.get("language"), MESSAGES["en"])
-    fallback = " → ".join((cfg.get("models") or {}).get("claudeFallback") or []) or "Claude"
-    lines = [
-        msg["head"],
-        msg["target"].format(path=rel),
-        msg["route"].format(model=codex.get("model", "?"), effort=codex.get("effort", "?")),
-    ]
-    if is_backend:
-        lines.append(msg["backend"])
-    lines.append(msg["allow"].format(fallback=fallback))
+    lines = []
 
+    # Codex-first reminder: source files only, and only when Codex is enabled.
+    codex = (cfg.get("models") or {}).get("codex") or {}
+    routing = cfg.get("codexRouting") or {}
+    if (codex.get("enabled") is True
+            and matches(routing.get("code") or DEFAULT_CODE, rel)
+            and not matches(routing.get("exclude") or DEFAULT_EXCLUDE, rel)):
+        fallback = " → ".join((cfg.get("models") or {}).get("claudeFallback") or []) or "Claude"
+        lines += [
+            msg["head"],
+            msg["target"].format(path=rel),
+            msg["route"].format(model=codex.get("model", "?"), effort=codex.get("effort", "?")),
+        ]
+        if matches(routing.get("backend") or DEFAULT_BACKEND, rel):
+            lines.append(msg["backend"])
+        lines.append(msg["allow"].format(fallback=fallback))
+
+    # Security-gate reminder: any file type, whether or not Codex is enabled.
+    security = cfg.get("security") or {}
+    if (not matches(SECURITY_EXCLUDE, rel)
+            and matches(DEFAULT_SECURITY + list(security.get("sensitive") or []), rel)):
+        lines.append(msg["security"].format(path=rel))
+
+    if not lines:
+        return
     print(
         json.dumps(
             {"hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": "\n".join(lines)}},

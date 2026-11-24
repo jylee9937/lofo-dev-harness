@@ -58,6 +58,11 @@ class RenderBasics(ProjectTestCase):
         doc = self.read("docs/dev-harness.md")
         self.assertIn("/lofo-dev-harness:wireflow", doc)
         self.assertIn("Figma에 같은 화면, 화살표, 검토 표시를 그린다", doc)
+        self.assertIn("### 보안 관문", doc)
+        self.assertIn("판정은 Codex가 내린다", doc)
+        self.assertIn("'임시 GO'로 기록한다", doc)
+        self.assertIn("`docs/security/reviews/<날짜>-<이름>/`", doc)
+        self.assertIn("/lofo-dev-harness:security-gate", self.read("AGENTS.md"))
 
     def test_rerun_is_idempotent_and_check_reports(self):
         self.write_config(EXAMPLE)
@@ -205,9 +210,28 @@ class Variants(ProjectTestCase):
         self.assertIn("not configured yet", doc)
         self.assertIn("No integrations configured", doc)
         self.assertIn("No design tool: review on the HTML board.", doc)
+        self.assertIn("A Claude independent reviewer who did not write the change gives the verdict", doc)
+        self.assertNotIn("If Codex cannot review", doc)
         self.assertIn("`design/flows/*.flow.json`", self.read("AGENTS.md"))
         self.assertIn("`npm run dev`", self.read("AGENTS.md"))
         self.assertNotIn("codex-delegate", self.read("AGENTS.md"))
+
+    def test_security_substitute_policies(self):
+        for policy, text in (("wait", "Codex를 쓸 수 있을 때까지 병합·배포를 미룬다"),
+                             ("allow", "Claude 독립 검토자의 GO로 진행하고")):
+            cfg = copy.deepcopy(EXAMPLE)
+            cfg["security"]["substitute"] = policy
+            with self.subTest(policy=policy):
+                self.assertIn(text, render.render_documents(cfg)["doc_block"])
+        cfg = copy.deepcopy(EXAMPLE)
+        cfg["security"] = {"substitute": "sometimes", "auditLevel": "severe", "sensitive": ["(unclosed"]}
+        errors = "\n".join(render.validate(cfg))
+        self.assertIn("security.substitute", errors)
+        self.assertIn("security.auditLevel", errors)
+        self.assertIn("security.sensitive[0]", errors)
+        cfg = copy.deepcopy(EXAMPLE)
+        cfg.pop("security")
+        self.assertIn("'임시 GO'", render.render_documents(cfg)["doc_block"], "hold is the default")
 
     def test_autonomous_example_renders_coming_soon(self):
         self.write_config(AUTONOMOUS)

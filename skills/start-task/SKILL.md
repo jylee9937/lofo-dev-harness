@@ -74,6 +74,7 @@ Then decide:
   - requirements exist but there is no design → stage 2 or 3. A new screen or a changed user flow starts at stage 2 with `/lofo-dev-harness:wireflow`.
   - a bug fix or small change → stage 5. With Codex enabled, start with a read-only Codex diagnosis.
 - **Backend-sensitive work**: the task touches the database, auth, server boundaries or migrations, or the likely files match `codexRouting.backend`. Plan to explain concepts and options before implementing (§6 of the doc), and say so.
+- **Security gate**: say up front when the task touches auth, permissions, money, secrets, personal data, uploads, webhooks or permission migrations. It will need GO from `/lofo-dev-harness:security-gate` before merge, so plan time for that review.
 - **Codex**: if `models.codex.enabled`, say that implementation, review and diagnosis go to Codex through `/lofo-dev-harness:codex-delegate`, with the configured model and effort.
 
 ## 6. Report

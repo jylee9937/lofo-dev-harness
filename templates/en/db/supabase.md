@@ -4,3 +4,7 @@
 - The `service_role` key bypasses RLS. Use it only inside the server boundary, in the places the technical design lists. Never put it in client code, logs or commits.
 - Apply new migrations to a local database (`supabase start`) first, and test access rules by running real queries as each role.
 - Applying to the hosted database needs the user's confirmation and goes **backup → dry-run → apply → verify**.
+- Supabase Auth hashes passwords. Check the login rate limits (`[auth.rate_limit]`) and the CAPTCHA setting (hCaptcha or Turnstile).
+- Keep storage buckets private. Limit size, type and access with `file_size_limit`, `allowed_mime_types` and policies on `storage.objects`.
+- `.or()` and `.filter()` take raw filter strings. Never put user input into them.
+- `security definer` functions fix `set search_path` and check the caller again.

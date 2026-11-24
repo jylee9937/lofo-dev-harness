@@ -32,5 +32,11 @@
     "handoff": ".harness/handoff.md",
     "handoffMaxKb": 40
   },
-  "integrations": { "notes": "obsidian", "design": "figma", "gstack": true, "tasks": "none" }
+  "integrations": { "notes": "obsidian", "design": "figma", "gstack": true, "tasks": "none" },
+  "security": {
+    "reviewsDir": "docs/security/reviews",
+    "decisions": "docs/security/decisions.md",
+    "auditLevel": "high",
+    "substitute": "hold"
+  }
 }
