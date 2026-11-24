@@ -69,6 +69,11 @@ These are not asked. Mention them in the summary so the user can change them:
 - QA port 3100
 - viewports 390, 768, 1440
 - docs paths, including the wireflow folder `docs.flows` (`design/flows`), and `handoffMaxKb` 40
+- `security`:
+  - `reviewsDir` = `docs/security/reviews`
+  - `decisions` = `docs/security/decisions.md`
+  - `auditLevel` = `high`
+  - `substitute` = `hold`: when Codex cannot review, a Claude GO is provisional and merge waits for Codex or the user's explicit approval. Say this in one line, since it changes what happens on a Codex rate limit.
 - `codexRouting`: copy it from `${CLAUDE_PLUGIN_ROOT}/examples/nextjs-supabase-vercel.config.json` for Next.js. Otherwise leave it out, and the hook uses its built-in defaults.
 
 ## 4. Write the config

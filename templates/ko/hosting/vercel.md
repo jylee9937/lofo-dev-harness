@@ -2,3 +2,4 @@
 - PR마다 생기는 미리보기 배포로 변경을 확인한다.
 - 환경 변수는 Vercel 프로젝트 설정에서 관리한다. 값은 출력하거나 커밋하지 않는다. 로컬에서는 `.env.local`(git 제외)을 쓴다.
 - 프로덕션 배포, 도메인, 환경 변수 변경은 사용자 확인을 받는다.
+- 환경 변수는 환경별(Production·Preview·Development)로 나눈다. 미리보기 배포가 실제 데이터를 쓰면 Deployment Protection을 켠다.

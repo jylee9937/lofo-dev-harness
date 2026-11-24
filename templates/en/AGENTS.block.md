@@ -38,6 +38,7 @@ Claude enters through `CLAUDE.md → @AGENTS.md`, and Codex reads this same file
 - No external writes, deploys or hosted database changes without the user's confirmation.
 - Never print secrets or tokens, and never put them in files or commits.
 - For backend work (access rules, migrations, admin keys, server boundaries), explain the concepts and options first and decide together with the user before implementing.
+- Changes in the security gate's scope (auth, authorization, money, secrets, personal data, uploads, webhooks, permission migrations) are not merged or deployed before `/lofo-dev-harness:security-gate` gives GO.
 - When a decision is needed, ask one question at a time with the recommended option first.
 
 ## Definition of done

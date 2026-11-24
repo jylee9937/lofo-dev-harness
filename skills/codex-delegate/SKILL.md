@@ -49,6 +49,8 @@ Report:
 
 For a review, ask for findings with `file:line`, severity and a concrete failure scenario. For backend or security reviews, ask Codex to end with a verdict line, `VERDICT: GO` or `VERDICT: NO-GO`.
 
+For security-gate reviews, do not write the brief yourself. Use the `prompt.md` that `security.py prompt` generates (see `/lofo-dev-harness:security-gate`) as the brief, read-only, and save the full answer as `codex.md` in that review folder.
+
 ## 4. Run it
 
 **Route A: the Codex plugin for Claude Code.** Use this when the `codex:codex-rescue` agent is available.

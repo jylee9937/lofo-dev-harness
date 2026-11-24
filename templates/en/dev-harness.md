@@ -119,6 +119,26 @@ Covers:
 
 An explanation covers the concept, why this choice, and the alternatives. Decisions and trade-offs go into the technical design doc (§2).
 
+### Security gate
+
+- **Covers**: authentication, authorization (RLS, roles), money, secrets, personal data, file uploads, webhooks, and migrations that change permissions or schema. `security.py scope` decides from the changed files.
+- **How**: `/lofo-dev-harness:security-gate` runs automated checks, then the checklist, then an independent review that ends in `VERDICT: GO / NO-GO`. The automated checks cover secrets, SQL and filter injection, upload limits, login attempt limits, authorization, weak hashing, RLS and dependency advisories.
+- **Five essentials before launch**:
+  1. Validate input on the server (SQL injection).
+  2. Limit login attempts (brute force).
+  3. Store passwords only as hashes.
+  4. Limit uploaded file types and sizes.
+  5. Audit dependencies (`{{audit_level}}` or above blocks).
+{{#codex}}
+- **Codex gives the verdict**, reviewing read-only in a context separate from the author's. If Codex cannot review, {{substitute_rule}}
+{{/codex}}
+{{^codex}}
+- **A Claude independent reviewer who did not write the change gives the verdict**, reviewing read-only.
+{{/codex}}
+- **Nothing is merged or deployed before GO.** On NO-GO, fix and review again. After three NO-GO rounds in a row, ask the user.
+- **Records**: the prompt, scan results, review output and a summary go in `{{reviews_dir}}/<date>-<name>/`, committed with the change. Accepted risks go in the decisions file with a date.
+- Before launch, run a full check once (`/lofo-dev-harness:security-gate --launch`).
+
 ## 7. Gates (required before done and before a PR)
 
 {{gates_list}}

@@ -4,3 +4,7 @@
 - `service_role` 키는 RLS를 우회한다. 서버 경계 안, 기술 설계에 적은 곳에서만 쓴다. 클라이언트 코드, 로그, 커밋에는 절대 넣지 않는다.
 - 새 마이그레이션은 로컬 DB(`supabase start`)에서 먼저 적용해 보고, 권한 규칙은 역할별로 실제 쿼리를 돌려 확인한다.
 - 호스팅 DB에 반영할 때는 사용자 확인을 받고 **백업 → dry-run → 반영 → 결과 확인** 순서로 한다.
+- 비밀번호 해시는 Supabase Auth가 맡는다. 로그인 시도 제한(`[auth.rate_limit]`)과 CAPTCHA(hCaptcha·Turnstile) 설정을 확인한다.
+- 저장소 버킷은 비공개로 두고 `file_size_limit`, `allowed_mime_types`, `storage.objects` 정책으로 크기·형식·권한을 제한한다.
+- `.or()`, `.filter()`는 필터 문자열을 그대로 받는다. 사용자 입력을 문자열에 넣지 않는다.
+- `security definer` 함수는 `set search_path`를 고정하고 호출자를 다시 확인한다.

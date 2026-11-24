@@ -218,6 +218,42 @@
         }
       }
     },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Security gate settings used by /lofo-dev-harness:security-gate and scripts/security.py.",
+      "properties": {
+        "reviewsDir": {
+          "type": "string",
+          "default": "docs/security/reviews",
+          "description": "Where review folders (prompt, scan, reviewer output, decisions) are committed."
+        },
+        "decisions": {
+          "type": "string",
+          "default": "docs/security/decisions.md",
+          "description": "Accepted risks and owner decisions, quoted to reviewers so they are not re-reported."
+        },
+        "audit": {
+          "type": "string",
+          "description": "Dependency audit command. Defaults to the package manager's audit with JSON output."
+        },
+        "auditLevel": {
+          "enum": ["low", "moderate", "high", "critical"],
+          "default": "high",
+          "description": "Advisories at or above this level block the gate."
+        },
+        "sensitive": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Extra path regular expressions that always require the gate."
+        },
+        "substitute": {
+          "enum": ["hold", "wait", "allow"],
+          "default": "hold",
+          "description": "When Codex cannot review. hold: a Claude reviewer's GO is provisional; merge waits for a Codex GO or the user's explicit approval of that change. wait: no substitute, wait for Codex. allow: a Claude reviewer's GO counts."
+        }
+      }
+    },
     "autonomous": {
       "type": "object",
       "additionalProperties": false,

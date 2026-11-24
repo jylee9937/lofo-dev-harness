@@ -107,6 +107,9 @@ C. 웹사이트          (따로 발전한 자율 운영형: "AI가 만들고 �
 8. **보드 수준**: 첫 버전은 **검토 보드**다.
    - 단계별 화면, 번호 붙은 경로 강조, 화면별 검토 표시, 수정 요청 복사가 들어간다.
    - 버튼을 눌러 걸어 보는 클릭 프로토타입(입력값 유지, 실패 후 재시도 재현)은 다음 버전으로 미룬다.
+9. **보안 관문의 대체 검토** (2026-11-24): 기본값은 `hold`다. Codex가 검토할 수 없으면 Claude 독립 검토자가 먼저 보지만 그 GO는 '임시'다. Codex GO나 그 변경에 대한 사용자의 직접 허락(기록) 전에는 병합·배포하지 않는다. 설정으로 `wait`(대체 없음)나 `allow`(Claude GO 인정)로 바꿀 수 있다.
+   - 근거: C 프로젝트 하네스에서 Claude 대체 GO를 Codex가 NO-GO로 뒤집은 일이 세 번 있었다.
+   - 체크리스트 맨 앞에는 출시 전 필수 다섯 가지(입력 검증, 로그인 시도 제한, 비밀번호 해시, 업로드 제한, 의존성 취약점)를 둔다.
 
 ## 7. 저장소 구조안
 
@@ -123,7 +126,7 @@ lofo-dev-harness/
 │  ├─ codex-delegate/          ✅ Codex 위임 규칙, 지시문 틀, 결과 회수 요령
 │  ├─ wireflow/                ✅ 흐름 작성 → 검사 → UX 검토 → 보드 → 디자인 도구 표시 → 수정 요청 반영
 │  │  └─ references/           ✅ UX 체크리스트, 디자인 도구별(Figma, Pencil, 기타) 표시 규칙
-│  ├─ security-gate/           # ★ 관문: 인증·돈·비밀값·권한은 Codex 검토, GO/NO-GO
+│  ├─ security-gate/           ✅ ★ 관문: 자동 검사 → 체크리스트(필수 다섯 가지) → 독립 검토 GO/NO-GO → 기록
 │  ├─ tech-design/             # 기술설계 문서 6개 섹션, 백엔드 설명 규칙
 │  ├─ qa/                      # L0~L3 QA 단계, findings 형식, 시각 리뷰 루브릭
 │  ├─ handoff/                 # 핸드오프 작성·정리 (크기 상한)
@@ -135,6 +138,7 @@ lofo-dev-harness/
 ├─ scripts/
 │  ├─ render.py                ✅ 설정 → AGENTS.md 블록, CLAUDE.md, 하네스 문서, .gitignore
 │  ├─ flow.py                  ✅ 흐름 검증·구조 검사(check) → HTML 검토 보드(build)
+│  ├─ security.py              ✅ 보안 관문: scope · scan · audit · prompt · verdict
 │  └─ …                        # Codex 러너·재시도·연쇄 실행, DB 잠금, worktree 생성
 ├─ templates/{ko,en}/          ✅ 두 언어가 같은 파일 구성
 │  ├─ AGENTS.block.md, dev-harness.md
@@ -143,6 +147,7 @@ lofo-dev-harness/
 │  ├─ db/{supabase,none,_generic}.md
 │  └─ hosting/{vercel,_generic}.md
 ├─ templates/wireflow/board.html ✅ 검토 보드 템플릿 (외부 의존성 없음, 라이트·다크, 휴대폰 폭)
+├─ templates/security/review-prompt.md ✅ 독립 보안 검토 지시문 틀 (읽기 전용, 판정 줄)
 ├─ schemas/                    ✅ .harness/config.json 스키마, 흐름(flow.schema.json) 스키마
 ├─ examples/                   ✅ 설정 예시, 예시 흐름(flows/study-group.flow.json)
 ├─ tests/                      ✅ 렌더러·훅·흐름 테스트 (unittest)
@@ -192,7 +197,7 @@ init이 프로젝트에 설정 파일 하나를 만들고, 훅·스크립트·�
 
 1. **뼈대** ✅: 플러그인 정보, 마켓플레이스, README 두 개, LICENSE, config 형식
 2. **core + 협업 모드 + Next/Supabase/Vercel 프리셋** ✅ (v0.2): 세 프로젝트의 공통 부분을 옮기고 개인 정보를 걸러 냄. 프리셋이 없는 스택은 일반 규칙.
-3. **훅과 스킬**: 라우팅 훅, init, start-task, codex-delegate ✅ (v0.2) / security-gate, tech-design, handoff는 다음
+3. **훅과 스킬**: 라우팅 훅, init, start-task, codex-delegate ✅ (v0.2) / security-gate ✅ (v0.4) / tech-design, handoff는 다음
 3-1. **화면 설계·UX 검토** ✅ (v0.3): wireflow 스킬, flow.py, 검토 보드, 디자인 도구 표시 규칙. 클릭 프로토타입은 다음
 4. **QA 모듈**
 5. **자율 모드**: night-shift, Codex 러너 스크립트, worktree 슬롯과 DB 잠금

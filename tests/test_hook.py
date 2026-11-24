@@ -95,6 +95,29 @@ class HookTest(unittest.TestCase):
         self.assertIsNotNone(self.call(str(self.project / "server" / "main.go")))
         self.assertIsNone(self.call(str(self.project / "node_modules" / "x" / "index.js")))
 
+    def test_security_path_reminds_even_without_codex(self):
+        cfg = copy.deepcopy(EXAMPLE)
+        cfg["models"]["codex"] = {"enabled": False}
+        self.write_config(cfg)
+        ctx = self.call(str(self.project / "src" / "app" / "login" / "actions.ts"))
+        self.assertIn("보안 관문", ctx)
+        self.assertNotIn("Codex 우선", ctx)
+        self.assertIn("보안 관문", self.call(str(self.project / ".env.local")))
+        self.assertIsNone(self.call(str(self.project / ".env.example")))
+        self.assertIsNone(self.call(str(self.project / "docs" / "auth-notes.md")))
+
+    def test_security_and_codex_lines_together(self):
+        self.write_config(EXAMPLE)
+        ctx = self.call(str(self.project / "supabase" / "migrations" / "0003_policies.sql"))
+        self.assertIn("Codex 우선", ctx)
+        self.assertIn("보안 관문", ctx)
+
+    def test_custom_sensitive_pattern(self):
+        cfg = copy.deepcopy(EXAMPLE)
+        cfg["security"] = {"sensitive": [r"^src/church/"]}
+        self.write_config(cfg)
+        self.assertIn("보안 관문", self.call(str(self.project / "src" / "church" / "notice.ts")))
+
     def test_bad_regex_and_bad_stdin_never_crash(self):
         cfg = copy.deepcopy(EXAMPLE)
         cfg["codexRouting"]["code"] = ["(unclosed", r"\.tsx$"]
